@@ -1,0 +1,19 @@
+QMainWindow {
+    background-color: #666666;
+    color: white
+}
+
+QMenuBar {
+    background-color: #222222;
+    color: white
+}
+
+QMenu {
+    background-color: #333333;
+    color: white;
+}
+
+QDockWidget {
+    background-color: #333333;
+    color: white
+}
