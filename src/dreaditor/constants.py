@@ -12,26 +12,19 @@ class Scenario(Enum):
     HANUBIA = "s080_shipyard"
     ITORASH = "s090_skybase"
 
-    def folder(self) -> str:
-        return f"maps/levels/c010_samus/{self.value}"
+class ScenarioHelpers:
+    @classmethod
+    def folder(cls, scenario: Scenario) -> str:
+        return f"maps/levels/c10_samus/{scenario.value}"
     
-    def brfld(self) -> str:
-        return f"maps/levels/c010_samus/{self.value}/{self.value}.brfld"
+    @classmethod
+    def brfld(cls, scenario: Scenario) -> str:
+        return f"maps/levels/c10_samus/{scenario.value}/{scenario.value}.brfld"
     
-    def bmmap(self) -> str:
-        return f"maps/levels/c010_samus/{self.value}/{self.value}.bmmap"
-    
-    def bmscc(self) -> str:
-        return f"maps/levels/c010_samus/{self.value}/{self.value}.bmscc"
-    
-    def bmscd(self) -> str:
-        return f"maps/levels/c010_samus/{self.value}/{self.value}.bmscd"
-    
-    def bmssd(self) -> str:
-        return f"maps/levels/c010_samus/{self.value}/{self.value}.bmssd"
-    
-    def model_folder(self) -> str:
-        return f"maps/levels/c010_samus/{self.value}/models"
+    @classmethod
+    def bmmap(cls, scenario: Scenario) -> str:
+        return f"maps/levels/c10_samus/{scenario.value}/{scenario.value}.bmmap"
 
-    def long_name(self) -> str:
-        return self.name.title()
+    @classmethod
+    def long_name(cls, scenario: Scenario) -> str:
+        return scenario.name.title()
