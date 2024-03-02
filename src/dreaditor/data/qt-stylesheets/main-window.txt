@@ -8,9 +8,17 @@ QMenuBar {
     color: white
 }
 
+QMenuBar::item:selected {
+    background-color: #666666
+}
+
 QMenu {
     background-color: #333333;
     color: white;
+}
+
+QMenu::item:selected {
+    background-color: #888
 }
 
 QDockWidget {

@@ -1,14 +1,12 @@
-from PyQt5.QtGui import *
-from PyQt5.QtWidgets import *
-from PyQt5.QtCore import *
-
 import sys
+
 from pathlib import Path
+from PyQt5.QtWidgets import QApplication
 
 from dreaditor import setup_logging, get_log_folder
 
 
-log_dir = get_log_folder() # TODO save logs somewhere
+log_dir = get_log_folder()
 setup_logging("DEBUG", Path.joinpath(log_dir, "log.txt"))
 with QApplication(sys.argv) as app:
     from dreaditor.main_window import DreaditorWindow

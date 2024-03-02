@@ -7,6 +7,7 @@ from mercury_engine_data_structures.formats.bmmap import Bmmap
 from mercury_engine_data_structures.game_check import Game
 
 from dreaditor.constants import Scenario, ScenarioHelpers
+from dreaditor.config import get_config_data, set_config_data
 
 
 class RomManager:
@@ -16,12 +17,15 @@ class RomManager:
     def __init__(self):
         self.logger = logging.getLogger(type(self).__name__)
         self.editor = None
-        self.path = None
+        self.path = get_config_data("romfs_dir", None)
+        self.logger.info("Path is %s", self.path)
+        self.SelectRom(self.path)
     
     def SelectRom(self, path: str):
         self.path = path
         try:
             self.editor = FileTreeEditor(Path(path), target_game=Game.DREAD)
+            set_config_data("romfs_dir", path)
         except:
             self.editor = None
             self.path = None
@@ -34,7 +38,7 @@ class RomManager:
             
             self.SelectRom(self.path)
             return self.AssertRomSelected()
-        
+
         return True
     
     def OpenScenario(self, scenario: Scenario) -> tuple[Brfld, Bmmap]:
@@ -46,8 +50,3 @@ class RomManager:
             self.editor.get_parsed_asset(ScenarioHelpers.brfld(scenario), type_hint=Brfld),
             self.editor.get_parsed_asset(ScenarioHelpers.bmmap(scenario), type_hint=Bmmap),
         )
-        
-
-    
-
-RomFS: RomManager = RomManager()

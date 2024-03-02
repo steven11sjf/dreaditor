@@ -1,5 +1,5 @@
-import os
 import logging
+import os
 
 from pathlib import Path
 
@@ -8,13 +8,11 @@ VERSION_STRING = "0.1.0"
 
 def get_appdata_folder() -> Path:
     appdata = Path(os.getenv('APPDATA'))
-    print(appdata)
     folder = appdata.joinpath("Dreaditor")
 
-    if not Path.exists(appdata):
-        os.mkdir(appdata)
-    
-    return appdata
+    if not Path.exists(folder):
+        os.mkdir(folder)
+    return folder
 
 def get_log_folder() -> Path:
     appdata = get_appdata_folder()
@@ -25,10 +23,6 @@ def get_log_folder() -> Path:
 
     return logFolder
 
-def get_config_file_path() -> Path:
-    return get_appdata_folder().joinpath("config.json")
-
-
 def get_data_path() -> Path:
     return Path(__file__).parent.joinpath("data")
 
@@ -36,7 +30,7 @@ def get_stylesheet(sheet_name: str) -> str:
     file = get_data_path().joinpath("qt-stylesheets", sheet_name)
     
     if not file.exists():
-        logging.log(3, f"Stylesheet {sheet_name} does not exist!")
+        logging.getLogger(__name__).error("Missing stylesheet: %s", file)
         return ""
     
     return file.read_text()

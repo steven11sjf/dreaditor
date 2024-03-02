@@ -1,11 +1,13 @@
 import logging
 import os
+from PyQt5.QtGui import QCloseEvent
 
 from PyQt5.QtWidgets import QDockWidget, QFileDialog, QMainWindow, QMenu, QLabel, QTreeWidget, QTreeWidgetItem
 from PyQt5.QtCore import Qt, QSize
 
 from dreaditor import VERSION_STRING, get_log_folder, get_stylesheet
-from dreaditor.constants import Scenario, ScenarioHelpers
+from dreaditor.constants import Scenario
+from dreaditor.config import load_config, save_config
 from dreaditor.entity_list_tree import EntityListTreeWidget
 from dreaditor.rom_manager import RomManager
 
@@ -24,6 +26,7 @@ class DreaditorWindow(QMainWindow):
     def  __init__(self, *args, **kwargs):
         super(DreaditorWindow, self).__init__(*args, *kwargs)
         self.logger = logging.getLogger(type(self).__name__)
+        load_config()
         self.rom_manager = RomManager()
         
         self.setWindowTitle(f"Dreaditor v{VERSION_STRING}")
@@ -95,3 +98,7 @@ class DreaditorWindow(QMainWindow):
         print(type(region))
         print(region)
         self.entity_list_tree.OnNewScenarioSelected(region)
+
+    def closeEvent(self, a0: QCloseEvent | None) -> None:
+        save_config()
+        
