@@ -8,7 +8,7 @@ from PyQt5.QtCore import Qt, QSize
 from dreaditor import VERSION_STRING, get_log_folder, get_stylesheet
 from dreaditor.constants import Scenario
 from dreaditor.config import load_config, save_config
-from dreaditor.entity_list_tree import EntityListTreeWidget
+from dreaditor.widgets.entity_list_tree import EntityListTreeWidget
 from dreaditor.rom_manager import RomManager
 
 
@@ -27,7 +27,7 @@ class DreaditorWindow(QMainWindow):
         super(DreaditorWindow, self).__init__(*args, *kwargs)
         self.logger = logging.getLogger(type(self).__name__)
         load_config()
-        self.rom_manager = RomManager()
+        self.rom_manager = RomManager(self)
         
         self.setWindowTitle(f"Dreaditor v{VERSION_STRING}")
         self.resize(DEFAULT_WINDOW_DIMENSIONS)
@@ -48,10 +48,8 @@ class DreaditorWindow(QMainWindow):
 
         fileMenu = QMenu("&File", self)
         menuBar.addMenu(fileMenu)
-        openRomAction = fileMenu.addAction("Select RomFS")
-        openRomAction.triggered.connect(self.selectRomFS)
-        openLogFolderAction = fileMenu.addAction("Open Log Folder")
-        openLogFolderAction.triggered.connect(self.openLogFolder)
+        fileMenu.addAction("Select RomFS").triggered.connect(self.selectRomFS)
+        fileMenu.addAction("Open Log Folder").triggered.connect(self.openLogFolder)
 
         editMenu = QMenu("&Select Scenario", self)
         menuBar.addMenu(editMenu)
@@ -94,10 +92,12 @@ class DreaditorWindow(QMainWindow):
         self.logger.info("Opening logging dir")
         os.startfile(get_log_folder())
 
-    def openRegion(self, region: Scenario):
-        print(type(region))
-        print(region)
-        self.entity_list_tree.OnNewScenarioSelected(region)
+    def openRegion(self, scenario: Scenario):
+        self.rom_manager.OpenScenario(scenario)
+        self.entity_list_tree.OnNewScenarioSelected()
+
+    def SelectNode(self, layer: str, sublayer: str, sName: str):
+        self.entity_list_tree.SelectBrfldNode(layer, sublayer, sName)
 
     def closeEvent(self, a0: QCloseEvent | None) -> None:
         save_config()

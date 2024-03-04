@@ -1,3 +1,6 @@
+from __future__ import annotations
+from typing import TYPE_CHECKING
+
 import logging
 from pathlib import Path
 
@@ -9,13 +12,21 @@ from mercury_engine_data_structures.game_check import Game
 from dreaditor.constants import Scenario, ScenarioHelpers
 from dreaditor.config import get_config_data, set_config_data
 
+if TYPE_CHECKING:
+    from dreaditor.main_window import DreaditorWindow
 
 class RomManager:
+    main_window: DreaditorWindow
     editor: FileTreeEditor | None
     path: str | None
 
-    def __init__(self):
+    isScenarioLoaded: bool = False
+    scenario: Scenario | None
+    brfld: Brfld | None
+
+    def __init__(self, main_window: DreaditorWindow):
         self.logger = logging.getLogger(type(self).__name__)
+        self.main_window = main_window
         self.editor = None
         self.path = get_config_data("romfs_dir", None)
         self.logger.info("Path is %s", self.path)
@@ -46,7 +57,15 @@ class RomManager:
             self.logger.warning("No ROM selected!")
             return (None, None)
 
+        self.scenario = scenario
+        self.brfld = self.editor.get_parsed_asset(ScenarioHelpers.brfld(scenario), type_hint=Brfld)
+        self.isScenarioLoaded = True
+
         return (
             self.editor.get_parsed_asset(ScenarioHelpers.brfld(scenario), type_hint=Brfld),
             self.editor.get_parsed_asset(ScenarioHelpers.bmmap(scenario), type_hint=Bmmap),
         )
+    
+    def SelectNode(self, layer: str, sublayer: str, sName: str):
+        self.logger.info("SelectNode called: (%s, %s, %s)", layer, sublayer, sName)
+        self.main_window.SelectNode(layer, sublayer, sName)
