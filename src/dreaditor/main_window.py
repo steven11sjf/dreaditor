@@ -6,8 +6,10 @@ from PyQt5.QtWidgets import QDockWidget, QFileDialog, QMainWindow, QMenu, QLabel
 from PyQt5.QtCore import Qt, QSize
 
 from dreaditor import VERSION_STRING, get_log_folder, get_stylesheet
+from dreaditor.actor_reference import ActorRef
 from dreaditor.constants import Scenario
 from dreaditor.config import load_config, save_config
+from dreaditor.widgets.actor_data_tree import ActorDataTreeWidget
 from dreaditor.widgets.entity_list_tree import EntityListTreeWidget
 from dreaditor.rom_manager import RomManager
 
@@ -20,6 +22,7 @@ class DreaditorWindow(QMainWindow):
     entity_list_tree: EntityListTreeWidget
     central_dock: QDockWidget
     data_dock: QDockWidget
+    actor_data_tree: ActorDataTreeWidget
 
     rom_manager: RomManager
 
@@ -78,6 +81,9 @@ class DreaditorWindow(QMainWindow):
         self.data_dock.setMinimumWidth(MINIMUM_DOCK_WIDTH)
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.data_dock)
 
+        self.actor_data_tree = ActorDataTreeWidget(self.rom_manager, None)
+        self.data_dock.setWidget(self.actor_data_tree)
+
     def _createCentralDock(self):
         self.central_dock = QDockWidget("Area Map")
         self.central_dock.setFeatures(QDockWidget.DockWidgetFeature.NoDockWidgetFeatures)
@@ -98,6 +104,7 @@ class DreaditorWindow(QMainWindow):
 
     def SelectNode(self, layer: str, sublayer: str, sName: str):
         self.entity_list_tree.SelectBrfldNode(layer, sublayer, sName)
+        self.actor_data_tree.LoadActor(ActorRef(self.rom_manager.scenario, layer, sublayer, sName))
 
     def closeEvent(self, a0: QCloseEvent | None) -> None:
         save_config()

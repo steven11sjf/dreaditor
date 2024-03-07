@@ -7,8 +7,10 @@ from pathlib import Path
 from mercury_engine_data_structures.file_tree_editor import FileTreeEditor
 from mercury_engine_data_structures.formats.brfld import Brfld
 from mercury_engine_data_structures.formats.bmmap import Bmmap
+from mercury_engine_data_structures.formats.bmsad import Bmsad
 from mercury_engine_data_structures.game_check import Game
 
+from dreaditor.actor_reference import ActorRef
 from dreaditor.constants import Scenario, ScenarioHelpers
 from dreaditor.config import get_config_data, set_config_data
 
@@ -66,6 +68,17 @@ class RomManager:
             self.editor.get_parsed_asset(ScenarioHelpers.bmmap(scenario), type_hint=Bmmap),
         )
     
+    def GetActorFromRef(self, ref: ActorRef) -> dict | None:
+        try:
+            return self.brfld.raw.Root.pScenario[ref.layer]["dctSublayers"][ref.sublayer]["dctActors"][ref.name]
+        except:
+            return None
+    
+    def GetActorDef(self, adef: str) -> Bmsad:
+        if adef.startswith("actordef:"):
+            adef = adef[9:]
+        
+        return self.editor.get_parsed_asset(adef, type_hint=Bmsad)
     def SelectNode(self, layer: str, sublayer: str, sName: str):
         self.logger.info("SelectNode called: (%s, %s, %s)", layer, sublayer, sName)
         self.main_window.SelectNode(layer, sublayer, sName)
