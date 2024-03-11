@@ -1,0 +1,40 @@
+[build-system]
+requires = [
+  "setuptools>=61",
+  "wheel>=0.42.0"
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dreaditor"
+version = "0.1.4"
+authors = [
+  {name = "hyperbola0"}
+]
+dependencies = [
+  "mercury-engine-data-structures>=0.27.0",
+  "PyQt5>=5.15.10",
+  "importlib_metadata>=7.0.2"
+]
+requires-python = ">= 3.11"
+description = "A PyQt5-based Metroid Dread data visualizer"
+readme = {file = "README.md", content-type = "text/markdown"}
+license = {file = "LICENSE"}
+classifiers = [
+  "Development Status :: 2 - Pre-Alpha",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+  "Operating System :: Microsoft :: Windows",
+  "Programming Language :: Python :: 3.11",
+  "Topic :: Games/Entertainment"
+]
+
+[tool.setuptools.packages.find]
+where=["src"]
+include=["dreaditor*"]
+
+[tool.setuptools.package-data]
+dreaditor = ["data*"]
+
+[project.urls]
+Repository = "https://github.com/steven11sjf/dreaditor"

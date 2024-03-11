@@ -1,10 +1,11 @@
 import logging
 import os
+import importlib_metadata
 
 from pathlib import Path
 
 
-VERSION_STRING = "0.1.0"
+VERSION_STRING = importlib_metadata.version("dreaditor")
 
 def get_appdata_folder() -> Path:
     appdata = Path(os.getenv('APPDATA'))
