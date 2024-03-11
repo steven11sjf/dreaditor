@@ -1,19 +1,18 @@
-from PyQt5.QtWidgets import QTreeWidgetItem, QWidget
+from PyQt5.QtWidgets import QTreeWidgetItem
 from PyQt5.QtCore import Qt
 
+from dreaditor.actor import Actor
 from dreaditor.actor_reference import ActorRef
-from dreaditor.constants import Scenario
-from dreaditor.rom_manager import RomManager
 
 
 class EntityListTreeWidgetItem(QTreeWidgetItem):
-    rom_manager: RomManager | None
-    data: dict
+    actor: Actor
     reference: ActorRef
 
-    def __init__(self, rom_manager: RomManager, data: dict, ref: ActorRef, parent: QWidget | None = ...) -> None:
-        super().__init__(parent)
+    def __init__(self, actor: Actor) -> None:
+        super().__init__([actor.level_data.sName])
         
-        self.rom_manager = rom_manager
-        self.data = data
-        self.reference = ref
+        self.actor = actor
+        self.setFlags(self.flags() | Qt.ItemFlag.ItemIsAutoTristate | Qt.ItemFlag.ItemIsUserCheckable)
+        self.setCheckState(0, Qt.CheckState.Unchecked)
+        actor.entity_list_items.append(self)

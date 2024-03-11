@@ -9,3 +9,12 @@ class ActorRef:
     layer: str
     sublayer: str
     name: str
+
+    def __eq__(self, other):
+        if type(other) != type(self):
+            return False
+        
+        return (self.scenario == other.scenario
+                and self.layer == other.layer
+                and self.sublayer == other.sublayer
+                and self.name == other.name)

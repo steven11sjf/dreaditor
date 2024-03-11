@@ -7,7 +7,7 @@ from dreaditor import setup_logging, get_log_folder
 
 
 log_dir = get_log_folder()
-setup_logging("DEBUG", Path.joinpath(log_dir, "log.txt"))
+setup_logging("WARN", Path.joinpath(log_dir, "log.txt"))
 with QApplication(sys.argv) as app:
     from dreaditor.main_window import DreaditorWindow
 

@@ -7,10 +7,12 @@ from PyQt5.QtCore import Qt, QSize
 
 from dreaditor import VERSION_STRING, get_log_folder, get_stylesheet
 from dreaditor.actor_reference import ActorRef
-from dreaditor.constants import Scenario
+from dreaditor.constants import Scenario, ScenarioHelpers
 from dreaditor.config import load_config, save_config
 from dreaditor.widgets.actor_data_tree import ActorDataTreeWidget
 from dreaditor.widgets.entity_list_tree import EntityListTreeWidget
+from dreaditor.widgets.scenario_viewer import ScenarioViewer
+from dreaditor.widgets.scenario_scene import ScenarioScene
 from dreaditor.rom_manager import RomManager
 
 
@@ -23,6 +25,7 @@ class DreaditorWindow(QMainWindow):
     central_dock: QDockWidget
     data_dock: QDockWidget
     actor_data_tree: ActorDataTreeWidget
+    scenario_viewer: ScenarioViewer
 
     rom_manager: RomManager
 
@@ -36,17 +39,7 @@ class DreaditorWindow(QMainWindow):
         self.resize(DEFAULT_WINDOW_DIMENSIONS)
         self.setStyleSheet(get_stylesheet("main-window.txt"))
 
-        self._createMenuBar()
-        self._createActorListDock()
-        self._createActorDetailsDock()
-        self._createCentralDock()
-
-        label = QLabel("Insert data here")
-        label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.setCentralWidget(self.central_dock)
-        
-
-    def _createMenuBar(self):
+        # create menu bar
         menuBar = self.menuBar()
 
         fileMenu = QMenu("&File", self)
@@ -66,28 +59,32 @@ class DreaditorWindow(QMainWindow):
         editMenu.addAction("Hanubia").triggered.connect(lambda: self.openRegion(Scenario.HANUBIA))
         editMenu.addAction("Itorash").triggered.connect(lambda: self.openRegion(Scenario.ITORASH))
 
-    def _createActorListDock(self):
-        self.actor_list_dock = QDockWidget("Actors")
-        self.actor_list_dock.setFeatures(QDockWidget.DockWidgetFeature.NoDockWidgetFeatures)
-        self.actor_list_dock.setMinimumWidth(MINIMUM_DOCK_WIDTH)
-        self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.actor_list_dock)
-        
-        self.entity_list_tree = EntityListTreeWidget(self.rom_manager, None)
-        self.actor_list_dock.setWidget(self.entity_list_tree)
-    
-    def _createActorDetailsDock(self):
+        # create actor details dock
         self.data_dock = QDockWidget("Data")
         self.data_dock.setFeatures(QDockWidget.DockWidgetFeature.NoDockWidgetFeatures)
         self.data_dock.setMinimumWidth(MINIMUM_DOCK_WIDTH)
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.data_dock)
 
-        self.actor_data_tree = ActorDataTreeWidget(self.rom_manager, None)
+        self.actor_data_tree = ActorDataTreeWidget(None)
         self.data_dock.setWidget(self.actor_data_tree)
 
-    def _createCentralDock(self):
+        # create entity list dock
+        self.actor_list_dock = QDockWidget("Actors")
+        self.actor_list_dock.setFeatures(QDockWidget.DockWidgetFeature.NoDockWidgetFeatures)
+        self.actor_list_dock.setMinimumWidth(MINIMUM_DOCK_WIDTH)
+        self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.actor_list_dock)
+        
+        self.entity_list_tree = EntityListTreeWidget(self.actor_data_tree, None)
+        self.actor_list_dock.setWidget(self.entity_list_tree)
+
+        # create central dock
         self.central_dock = QDockWidget("Area Map")
         self.central_dock.setFeatures(QDockWidget.DockWidgetFeature.NoDockWidgetFeatures)
         self.addDockWidget(Qt.DockWidgetArea.BottomDockWidgetArea, self.central_dock)
+
+        self.scenario_viewer = ScenarioViewer(ScenarioScene(), self.rom_manager)
+        self.central_dock.setWidget(self.scenario_viewer)
+        self.setCentralWidget(self.central_dock)
 
     def selectRomFS(self):
         filename = QFileDialog.getExistingDirectory(self, "Open RomFS Folder")
@@ -99,8 +96,11 @@ class DreaditorWindow(QMainWindow):
         os.startfile(get_log_folder())
 
     def openRegion(self, scenario: Scenario):
-        self.rom_manager.OpenScenario(scenario)
+        self.setWindowTitle(f"Dreaditor v{VERSION_STRING}: {ScenarioHelpers.long_name(scenario)}")
         self.entity_list_tree.OnNewScenarioSelected()
+        self.scenario_viewer.OnNewScenarioSelected(scenario)
+        self.actor_data_tree.clear()
+        self.rom_manager.OpenScenario(scenario)
 
     def SelectNode(self, layer: str, sublayer: str, sName: str):
         self.entity_list_tree.SelectBrfldNode(layer, sublayer, sName)
