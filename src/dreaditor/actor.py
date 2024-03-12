@@ -44,11 +44,19 @@ class Actor:
         else:
             self.bmsad = None
         
-        self.entity_list_items = []
+        self.entity_list_items = [] 
         self.actor_dot = None
         # Qt's y axis points down, so invert it
         self.actor_rect = QRectF(level_data.vPos[0] - DOT_SIZE, -level_data.vPos[1] - DOT_SIZE, 2 * DOT_SIZE, 2 * DOT_SIZE)
     
+    def getComponent(self, name_or_type: str) -> dict | None:
+        for compName, comp in self.level_data.pComponents.items():
+            if compName == name_or_type:
+                return comp
+            if comp["@type"] == name_or_type:
+                return comp
+        return None
+
     def OnHovered(self):
         for eli in self.entity_list_items:
             pass # set bg to light gray

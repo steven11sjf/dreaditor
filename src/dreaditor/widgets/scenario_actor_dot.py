@@ -6,6 +6,7 @@ from PyQt5.QtCore import Qt, pyqtSlot
 from PyQt5.QtGui import QColor, QPen, QBrush
 
 from dreaditor.actor import Actor
+from dreaditor.widgets.custom_painters import detailed_actor_paint
 
 
 COLOR_ENTITY = QColor(0, 255, 0, 128)
@@ -55,8 +56,10 @@ class ScenarioActorDot(QGraphicsEllipseItem):
             self.actor.OnSelected()
     
     def paint(self, painter: QPainter | None, option: QStyleOptionGraphicsItem | None, widget: QWidget | None = ...) -> None:
+        
+        detailed_actor_paint(self.actor, painter, option, widget)
+        
         painter.setBrush(self.base_color)
-
         pen = QPen(OUTLINE_SELECTED if self.actor.isSelected else OUTLINE_UNSELECTED)
         pen.setWidthF(OUTLINE_WIDTH)
         painter.setPen(pen)
