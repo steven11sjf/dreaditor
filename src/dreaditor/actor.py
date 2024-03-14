@@ -1,6 +1,7 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 
+from enum import Enum
 import logging
 
 from PyQt5.QtCore import QRectF, Qt
@@ -13,10 +14,17 @@ if TYPE_CHECKING:
     from dreaditor.actor_reference import ActorRef
     from dreaditor.widgets.entity_list_tree_item import EntityListTreeWidgetItem
     from dreaditor.widgets.scenario_actor_dot import ScenarioActorDot
+    from dreaditor.widgets.scenario_viewer import ScenarioViewer
     from dreaditor.widgets.actor_data_tree import ActorDataTreeWidget
 
 
-DOT_SIZE = 50
+DOT_SIZE = 25
+
+class ActorSelectionState(Enum):
+    Toggle = 0
+    Unselected = 1
+    Selected = 2
+
 
 class Actor:
     editor: FileTreeEditor
@@ -29,14 +37,16 @@ class Actor:
     actor_dot: ScenarioActorDot | None
     actor_rect: QRectF
 
+    isChecked: bool = True
     isSelected: bool = False
 
-    def __init__(self, ref: ActorRef, level_data: dict, editor: FileTreeEditor, data_tree: ActorDataTreeWidget):
+    def __init__(self, ref: ActorRef, level_data: dict, editor: FileTreeEditor, data_tree: ActorDataTreeWidget, scene: ScenarioViewer):
         self.logger = logging.getLogger(type(self).__name__)
         self.editor = editor
         self.level_data = level_data
         self.ref = ref
         self.data_tree = data_tree
+        self.scene_viewer = scene
         
         bmsadLink = level_data.oActorDefLink[9:]
 
@@ -66,22 +76,30 @@ class Actor:
         # set actor_dot to be a large white oval
     
 
-    def OnSelected(self):
-        self.isSelected = True
-        for eli in self.entity_list_items:
-            eli.setCheckState(0, Qt.CheckState.Checked)
+    def OnSelected(self, state: ActorSelectionState = ActorSelectionState.Toggle):
+        if state == ActorSelectionState.Selected or (state == ActorSelectionState.Toggle and not self.isSelected):
+            # select
+            self.isSelected = True
+            for eli in self.entity_list_items:
+                eli.setCheckState(0, Qt.CheckState.Checked)
+                pass # TODO un-bold/un-italicize
+
+            # update scene to show change in selection
+            self.actor_dot.scene().views()[0].centerOn(self.actor_dot)
+
+            # fill in actorData
+            self.data_tree.LoadActor(self)
+        else:
+            # unselect
+            self.isSelected = False
+            for eli in self.entity_list_items:
+                pass # TODO un-bold/un-italicize
+            self.data_tree.UnloadActor(self)
 
         # update scene to show change in selection
-        self.actor_dot.scene().views()[0].centerOn(self.actor_dot)
-
-        # fill in actorData
-        self.data_tree.LoadActor(self)
+        self.actor_dot.update()
     
-    def OnUnselected(self):
-        self.isSelected = False
-        for eli in self.entity_list_items:
-            eli.setCheckState(0, Qt.CheckState.Unchecked)
-
-        # update scene to show change in selection
-        self.actor_dot.scene().update()
+    def UpdateCheckState(self, state: bool):
+        self.isChecked = state
+        self.actor_dot.update()
         

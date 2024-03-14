@@ -1,24 +1,24 @@
 import logging
 
 from PyQt5.QtWidgets import QTreeWidget, QTreeWidgetItem, QWidget
+from PyQt5.QtCore import pyqtSlot, QModelIndex
 
-from dreaditor.actor import Actor
+from dreaditor.actor import Actor, ActorSelectionState
+from dreaditor.widgets.actor_data_tree_item import ActorDataTreeItem
 
 
 class ActorDataTreeWidget(QTreeWidget):
-    brfld_node: QTreeWidgetItem
 
     def __init__(self, parent: QWidget | None = ...) -> None:
         super().__init__(parent)
         self.logger = logging.getLogger(type(self).__name__)
         self.setHeaderLabels(["name", "value"])
         self.setColumnCount(2)
+        self.itemDoubleClicked.connect(self.onItemDoubleClicked)
 
     def LoadActor(self, actor: Actor):
-        self.clear()
-
         # load the level data from the brfld
-        top_actor = QTreeWidgetItem([actor.level_data.sName])
+        top_actor = ActorDataTreeItem(actor)
         level_data = QTreeWidgetItem(["Level Data"])
         self.AddKeysToActor(level_data, actor.level_data)
         top_actor.addChild(level_data)
@@ -39,9 +39,25 @@ class ActorDataTreeWidget(QTreeWidget):
             self.logger.warn("The BMSAD for actor %s/%s/%s cannot be accessed due to a bug in mercury-engine-data-structures",
                              actor.ref.layer, actor.ref.sublayer, actor.ref.name)
 
+        # add top actor, expand recursively but make the root item unexpanded
         self.addTopLevelItem(top_actor)
-        self.expandAll()
+        self.expandRecursively(self.indexFromItem(top_actor))
+        top_actor.setExpanded(False)
+    
+    def UnloadActor(self, actor: Actor):
+        # find actor in top-level elements
+        idx_to_remove = -1
+        for actor_idx in range(self.topLevelItemCount()):
+            if self.topLevelItem(actor_idx).actor.ref == actor.ref:
+                idx_to_remove = actor_idx
+                break
         
+        if idx_to_remove == -1:
+            self.logger.info("Tried to unload actor %s/%s/%s from data tree, but could not be found!", actor.ref.layer,  actor.ref.sublayer, actor.ref.name)
+            return
+        
+        self.takeTopLevelItem(idx_to_remove)
+    
     def AddKeysToActor(self, item: QTreeWidgetItem, val: dict):
         for k,v in val.items():
             if isinstance(v, dict):
@@ -65,3 +81,8 @@ class ActorDataTreeWidget(QTreeWidget):
             
             else:
                 item.addChild(QTreeWidgetItem([k, str(v)]))
+
+    @pyqtSlot(QTreeWidgetItem, int)
+    def onItemDoubleClicked(self, item:  QTreeWidgetItem, col):
+        if isinstance(item, ActorDataTreeItem):
+            item.actor.OnSelected(ActorSelectionState.Unselected)

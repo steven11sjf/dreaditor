@@ -1,7 +1,7 @@
 import logging
 
 from PyQt5.QtWidgets import QGraphicsView, QGraphicsPixmapItem
-from PyQt5.QtCore import QRectF, QPointF
+from PyQt5.QtCore import QRectF, QPointF, Qt
 from PyQt5.QtGui import QBrush, QColor, QPen, QWheelEvent, QPixmap, QImage, QTransform
 
 from dreaditor import get_data_path
@@ -30,7 +30,10 @@ class ScenarioViewer(QGraphicsView):
         self.logger.info("Initialized ScenarioViewer!")
         self.rom_manager = rom_manager
         self.setDragMode(QGraphicsView.DragMode.ScrollHandDrag)
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.setBackgroundBrush(BACKGROUND)
+        self.setViewportUpdateMode(self.ViewportUpdateMode.FullViewportUpdate)
 
     def OnNewScenarioSelected(self, scenario: Scenario):
         self.scene().clear()

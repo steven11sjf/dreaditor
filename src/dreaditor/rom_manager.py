@@ -98,7 +98,7 @@ class RomManager:
 
             for sublayerName, sublayer in layer.dctSublayers.items():
                 for actorName, actorData in sublayer.dctActors.items():
-                    actor = Actor(ActorRef(self.scenario, layerName, sublayerName, actorName), actorData, self.editor, self.main_window.actor_data_tree)
+                    actor = Actor(ActorRef(self.scenario, layerName, sublayerName, actorName), actorData, self.editor, self.main_window.actor_data_tree, self.main_window.scenario_viewer)
                     self.actors.append(actor)
                     self.main_window.entity_list_tree.addBrfldItem(actor)
                     self.main_window.scenario_viewer.addActor(actor)

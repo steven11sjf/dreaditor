@@ -18,7 +18,10 @@ class EntityListTreeWidget(QTreeWidget):
         self.logger = logging.getLogger(type(self).__name__)
 
         self.setHeaderHidden(True)
-        self.itemDoubleClicked.connect(self.onItemClicked)
+        self.setSortingEnabled(True)
+        self.sortByColumn(0, Qt.SortOrder.AscendingOrder)
+        self.itemChanged.connect(self.onItemChanged)
+        self.itemDoubleClicked.connect(self.onItemDoubleClicked)
         # TODO set hover state, or possibly single-click state
 
         self.actor_data_tree = actor_data_tree
@@ -57,14 +60,15 @@ class EntityListTreeWidget(QTreeWidget):
         return None
     
     @pyqtSlot(QTreeWidgetItem, int)
-    def onItemClicked(self, item: QTreeWidgetItem, col):
+    def onItemChanged(self, item: QTreeWidgetItem, col):
         if isinstance(item, EntityListTreeWidgetItem):
-            if item.actor.isSelected:
-                item.actor.OnUnselected()
-            else:
-                item.actor.OnSelected()
-                self.actor_data_tree.LoadActor(item.actor)
+            item.actor.UpdateCheckState(item.checkState(0) == Qt.CheckState.Checked)
 
+    @pyqtSlot(QTreeWidgetItem, int)
+    def onItemDoubleClicked(self, item:  QTreeWidgetItem, col):
+        if isinstance(item,  EntityListTreeWidgetItem):
+            item.actor.OnSelected()
+    
     def SelectBrfldNode(self, layer: str, sublayer: str, sName: str):
         node = self.FindBrfldNode(layer, sublayer, sName)
 

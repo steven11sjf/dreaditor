@@ -1,11 +1,11 @@
 import logging
 from PyQt5.QtGui import QPainter
 
-from PyQt5.QtWidgets import QGraphicsScene, QGraphicsEllipseItem, QGraphicsItem, QGraphicsSceneHoverEvent, QGraphicsSceneMouseEvent, QStyleOptionGraphicsItem, QWidget
-from PyQt5.QtCore import Qt, pyqtSlot
-from PyQt5.QtGui import QColor, QPen, QBrush
+from PyQt5.QtWidgets import QGraphicsEllipseItem, QGraphicsItem, QGraphicsSceneHoverEvent, QGraphicsSceneMouseEvent, QStyleOptionGraphicsItem, QWidget
+from PyQt5.QtCore import QRectF, Qt, pyqtSlot
+from PyQt5.QtGui import QColor, QPen
 
-from dreaditor.actor import Actor
+from dreaditor.actor import Actor, ActorSelectionState
 from dreaditor.widgets.custom_painters import detailed_actor_paint
 
 
@@ -22,6 +22,7 @@ OUTLINE_WIDTH = 25
 class ScenarioActorDot(QGraphicsEllipseItem):
     actor: Actor
     base_color: QColor
+    bounding_rect: QRectF
 
     def __init__(self, actor: Actor, parent: QGraphicsItem | None = ...) -> None:
         super().__init__(parent)
@@ -42,26 +43,39 @@ class ScenarioActorDot(QGraphicsEllipseItem):
             self.base_color = COLOR_UNDEFINED
 
         self.setRect(actor.actor_rect)
+        self.bounding_rect = actor.actor_rect
         self.actor = actor
         self.setAcceptHoverEvents(True)
     
     def hoverEnterEvent(self, event: QGraphicsSceneHoverEvent | None) -> None:
         self.setToolTip(f"{self.actor.ref.layer}/{self.actor.ref.sublayer}/{self.actor.ref.name}\n"
                         + f"{self.actor.level_data.vPos[0]}, {self.actor.level_data.vPos[1]}")
-    
-    def mouseDoubleClickEvent(self, event: QGraphicsSceneMouseEvent | None) -> None:
-        if self.actor.isSelected:
-            self.actor.OnUnselected()
+        
+    def mousePressEvent(self, event: QGraphicsSceneMouseEvent | None) -> None:
+        if event.button() == Qt.MouseButton.RightButton:
+            # clear selection on all items below cursor if right clicked
+            self.actor.OnSelected(ActorSelectionState.Unselected)
+            event.ignore()
         else:
-            self.actor.OnSelected()
+            return super().mousePressEvent(event)
+    def mouseDoubleClickEvent(self, event: QGraphicsSceneMouseEvent | None) -> None:
+        self.actor.OnSelected()
+        event.ignore()
     
     def paint(self, painter: QPainter | None, option: QStyleOptionGraphicsItem | None, widget: QWidget | None = ...) -> None:
+        if not self.actor.isChecked:
+            return
         
-        detailed_actor_paint(self.actor, painter, option, widget)
-        
+        brect = detailed_actor_paint(self.actor, painter, option, widget)
+
         painter.setBrush(self.base_color)
         pen = QPen(OUTLINE_SELECTED if self.actor.isSelected else OUTLINE_UNSELECTED)
         pen.setWidthF(OUTLINE_WIDTH)
         painter.setPen(pen)
         
         painter.drawEllipse(self.actor.actor_rect)
+        
+        self.bounding_rect = brect.united(self.bounding_rect)
+    
+    def boundingRect(self) -> QRectF:
+        return self.bounding_rect

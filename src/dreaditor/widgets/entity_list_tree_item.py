@@ -14,5 +14,6 @@ class EntityListTreeWidgetItem(QTreeWidgetItem):
         
         self.actor = actor
         self.setFlags(self.flags() | Qt.ItemFlag.ItemIsAutoTristate | Qt.ItemFlag.ItemIsUserCheckable)
-        self.setCheckState(0, Qt.CheckState.Unchecked)
+        self.setCheckState(0, Qt.CheckState.Checked)
         actor.entity_list_items.append(self)
+        

@@ -6,15 +6,17 @@ from mercury_engine_data_structures.formats.bmscc import Bmscc
 
 from dreaditor.actor import Actor
 
-def detailed_actor_paint(actor: Actor, painter: QPainter | None, option: QStyleOptionGraphicsItem | None, widget: QWidget | None):
+def detailed_actor_paint(actor: Actor, painter: QPainter | None, option: QStyleOptionGraphicsItem | None, widget: QWidget | None) -> QRectF:
+    rect = QRectF()
     if actor.getComponent("CDoorLifeComponent"):
-        paint_door(actor, painter, option, widget)
-    if actor.getComponent("CCollisionComponent"):
-        paint_collision(actor, painter, option, widget)
+        rect = rect.united(paint_door(actor, painter, option, widget))
+    if actor.getComponent("CCollisionComponent") and actor.bmsad:
+        rect = rect.united(paint_collision(actor, painter, option, widget))
+    return rect
 
 
 DOOR_PEN = QPen(QColor(255, 255, 255, 255), 20)
-def paint_door(actor: Actor, painter: QPainter | None, option: QStyleOptionGraphicsItem | None, widget: QWidget | None):
+def paint_door(actor: Actor, painter: QPainter | None, option: QStyleOptionGraphicsItem | None, widget: QWidget | None) -> QRectF:
     door_type = actor.level_data.oActorDefLink.split('/')[2]
     rect = QRectF(QPointF(actor.level_data.vPos[0] - 150, -actor.level_data.vPos[1]), QPointF(actor.level_data.vPos[0] + 150, -actor.level_data.vPos[1] - 300))
     if door_type == "doorshutter":
@@ -24,21 +26,22 @@ def paint_door(actor: Actor, painter: QPainter | None, option: QStyleOptionGraph
     painter.pen().setWidth(50)
     painter.setBrush(QColor(255, 255, 0, 255))
     painter.drawRect(rect)
+    return rect
 
 COLLIDER_PEN_UNSELECTED = QPen(QColor(255, 0, 0, 128), 15)
 COLLIDER_PEN_SELECTED = QPen(QColor(255, 0, 255, 128), 20)
 COLLIDER_BRUSH = QBrush(QColor(0, 0, 0, 0))
-def paint_collision(actor: Actor, painter: QPainter | None, option: QStyleOptionGraphicsItem | None, widget: QWidget | None):
-    #print(actor.ref.name)
+def paint_collision(actor: Actor, painter: QPainter | None, option: QStyleOptionGraphicsItem | None, widget: QWidget | None) -> QRectF:
+    
     coll_dep = actor.bmsad.components["COLLISION"].dependencies
     coll_fp = coll_dep.file
-    coll_unk = coll_dep.unk
+
+    rect = QRectF()
 
     painter.setBrush(COLLIDER_BRUSH)
     painter.setPen(COLLIDER_PEN_SELECTED if actor.isSelected else COLLIDER_PEN_UNSELECTED)
     vPos = QPointF(actor.level_data.vPos[0], -actor.level_data.vPos[1])
 
-    #print(actor.bmsad.components["COLLISION"].dependencies)
     if isinstance(coll_fp, str) and coll_fp != "Unassigned":
         bmscd = actor.editor.get_parsed_asset(coll_fp.replace("\\", "/"), type_hint=Bmscc)
         
@@ -49,7 +52,9 @@ def paint_collision(actor: Actor, painter: QPainter | None, option: QStyleOption
                     halfh = entry.data.size[1] / 2
                     p1 = vPos + QPointF(entry.data.center[0] - halfw, halfh - entry.data.center[1])
                     p2 = vPos + QPointF(entry.data.center[0] +  halfw, - halfh - entry.data.center[1])
-                    painter.drawRect(QRectF(p1, p2))
+                    r = QRectF(p1, p2)
+                    painter.drawRect(r)
+                    rect = rect.united(r)
 
                 elif entry.type == u'POLYCOLLECTION2D':
                     for polygon in entry.data.polys:
@@ -62,5 +67,8 @@ def paint_collision(actor: Actor, painter: QPainter | None, option: QStyleOption
                         if polygon.loop:
                             poly.append(poly.first())
                         
+                        rect = rect.united(poly.boundingRect())
                         painter.drawPolyline(poly)
+    
+    return rect
                     
