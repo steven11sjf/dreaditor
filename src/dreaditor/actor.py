@@ -8,6 +8,7 @@ from PyQt5.QtCore import QRectF, Qt
 from PyQt5.QtGui import QBrush, QColor
 
 from mercury_engine_data_structures.formats.bmsad import Bmsad
+from mercury_engine_data_structures.formats.bmscc import Bmscc
 from mercury_engine_data_structures.file_tree_editor import FileTreeEditor
 
 if TYPE_CHECKING:
@@ -30,7 +31,8 @@ class Actor:
     editor: FileTreeEditor
     ref: ActorRef
     level_data: dict
-    bmsad: Bmsad
+    bmsad: Bmsad | None = None
+    bmscc: Bmscc | None = None
 
     entity_list_items: list[EntityListTreeWidgetItem]
     data_tree: ActorDataTreeWidget
@@ -49,17 +51,24 @@ class Actor:
         self.scene_viewer = scene
         
         bmsadLink = level_data.oActorDefLink[9:]
-
-        # avoid crashing on the one broken actordef
-        if bmsadLink != "actors/props/pf_mushr_fr/charclasses/pf_mushr_fr.bmsad":
-            self.bmsad = editor.get_parsed_asset(bmsadLink, type_hint=Bmsad)
-        else:
-            self.bmsad = None
         
         self.entity_list_items = [] 
         self.actor_dot = None
         # Qt's y axis points down, so invert it
         self.actor_rect = QRectF(level_data.vPos[0] - DOT_SIZE, -level_data.vPos[1] - DOT_SIZE, 2 * DOT_SIZE, 2 * DOT_SIZE)
+
+        # avoid crashing on the one broken actordef
+        if bmsadLink == "actors/props/pf_mushr_fr/charclasses/pf_mushr_fr.bmsad":
+            return
+        
+        self.bmsad = editor.get_parsed_asset(bmsadLink, type_hint=Bmsad)
+        if "COLLISION" in self.bmsad.components:
+            coll: str = self.bmsad.components["COLLISION"].dependencies.file
+            if coll != "Unassigned":
+                self.bmscc = editor.get_parsed_asset(coll.replace("\\", "/"), type_hint=Bmscc)
+            else:
+                self.logger.info("actor %s/%s/%s has unassigned collision file!", ref.layer, ref.sublayer, ref.name)
+        
     
     def getComponent(self, name_or_type: str) -> dict | None:
         for compName, comp in self.level_data.pComponents.items():

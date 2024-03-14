@@ -3,6 +3,8 @@ import logging
 from PyQt5.QtWidgets import QTreeWidget, QTreeWidgetItem, QWidget
 from PyQt5.QtCore import pyqtSlot, QModelIndex
 
+from construct import Container, ListContainer
+
 from dreaditor.actor import Actor, ActorSelectionState
 from dreaditor.widgets.actor_data_tree_item import ActorDataTreeItem
 
@@ -39,6 +41,10 @@ class ActorDataTreeWidget(QTreeWidget):
             self.logger.warn("The BMSAD for actor %s/%s/%s cannot be accessed due to a bug in mercury-engine-data-structures",
                              actor.ref.layer, actor.ref.sublayer, actor.ref.name)
 
+        if actor.bmscc != None:
+            bmscc_item = QTreeWidgetItem(["BMSCC"])
+            self.AddKeysToActor(bmscc_item, actor.bmscc.raw)
+            top_actor.addChild(bmscc_item)
         # add top actor, expand recursively but make the root item unexpanded
         self.addTopLevelItem(top_actor)
         self.expandRecursively(self.indexFromItem(top_actor))
@@ -60,6 +66,9 @@ class ActorDataTreeWidget(QTreeWidget):
     
     def AddKeysToActor(self, item: QTreeWidgetItem, val: dict):
         for k,v in val.items():
+            if k in ["_io"]:
+                continue
+            
             if isinstance(v, dict):
                 child = QTreeWidgetItem([k, ""])
                 self.AddKeysToActor(child, v)
@@ -78,7 +87,7 @@ class ActorDataTreeWidget(QTreeWidget):
                 else:
                     self.AddKeysToActor(child, { str(i): value for i, value in enumerate(v)})
                     item.addChild(child)
-            
+                
             else:
                 item.addChild(QTreeWidgetItem([k, str(v)]))
 

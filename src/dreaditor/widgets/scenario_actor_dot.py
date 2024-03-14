@@ -6,7 +6,7 @@ from PyQt5.QtCore import QRectF, Qt, pyqtSlot
 from PyQt5.QtGui import QColor, QPen
 
 from dreaditor.actor import Actor, ActorSelectionState
-from dreaditor.widgets.custom_painters import detailed_actor_paint
+from dreaditor.painters.custom_painters import detailed_actor_paint
 
 
 COLOR_ENTITY = QColor(0, 255, 0, 128)
@@ -74,8 +74,11 @@ class ScenarioActorDot(QGraphicsEllipseItem):
         painter.setPen(pen)
         
         painter.drawEllipse(self.actor.actor_rect)
-        
-        self.bounding_rect = brect.united(self.bounding_rect)
+
+        brect = brect.united(self.bounding_rect)
+        if brect != self.bounding_rect:
+            self.prepareGeometryChange()
+            self.bounding_rect = brect
     
     def boundingRect(self) -> QRectF:
         return self.bounding_rect
