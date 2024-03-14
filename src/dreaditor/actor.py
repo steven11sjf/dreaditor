@@ -19,6 +19,7 @@ if TYPE_CHECKING:
 DOT_SIZE = 50
 
 class Actor:
+    editor: FileTreeEditor
     ref: ActorRef
     level_data: dict
     bmsad: Bmsad
@@ -32,6 +33,7 @@ class Actor:
 
     def __init__(self, ref: ActorRef, level_data: dict, editor: FileTreeEditor, data_tree: ActorDataTreeWidget):
         self.logger = logging.getLogger(type(self).__name__)
+        self.editor = editor
         self.level_data = level_data
         self.ref = ref
         self.data_tree = data_tree
