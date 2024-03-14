@@ -35,7 +35,7 @@ py -m dreaditor
 
 ## Usage
 
-![Main Dreaditor Window](data/images/MainWindow.png)
+![Main Dreaditor Window](docs/images/MainWindow.png)
 
 First, open `File -> Select RomFS` in the menu bar and select an extracted copy of your Metroid Dread RomFS. This should be a directory containing folders such as `gui`, `packs`, `sounds`, `system` and `textures`, as well as a `config.ini` file. This path will be saved in a config file and only needs to be updated if the RomFS is moved to another directory. 
 
