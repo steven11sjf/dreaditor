@@ -6,19 +6,29 @@ from PyQt5.QtCore import pyqtSlot, QModelIndex
 from construct import Container, ListContainer
 
 from dreaditor.actor import Actor, ActorSelectionState
+from dreaditor.actor_reference import ActorRef
+from dreaditor.rom_manager import RomManager
 from dreaditor.widgets.actor_data_tree_item import ActorDataTreeItem
 
 
 class ActorDataTreeWidget(QTreeWidget):
+    rom_manager: RomManager
 
-    def __init__(self, parent: QWidget | None = ...) -> None:
+    def __init__(self, rom_manager: RomManager, parent: QWidget | None = ...) -> None:
         super().__init__(parent)
         self.logger = logging.getLogger(type(self).__name__)
+        self.rom_manager = rom_manager
+
         self.setHeaderLabels(["name", "value"])
         self.setColumnCount(2)
         self.itemDoubleClicked.connect(self.onItemDoubleClicked)
 
     def LoadActor(self, actor: Actor):
+        # guard against loading actor multiple times
+        idx = self.FindActor(actor)
+        if idx != None:
+            return
+        
         # load the level data from the brfld
         top_actor = ActorDataTreeItem(actor)
         level_data = QTreeWidgetItem(["Level Data"])
@@ -50,19 +60,23 @@ class ActorDataTreeWidget(QTreeWidget):
         self.expandRecursively(self.indexFromItem(top_actor))
         top_actor.setExpanded(False)
     
-    def UnloadActor(self, actor: Actor):
+    def FindActor(self, actor: Actor) -> int:
         # find actor in top-level elements
-        idx_to_remove = -1
         for actor_idx in range(self.topLevelItemCount()):
             if self.topLevelItem(actor_idx).actor.ref == actor.ref:
-                idx_to_remove = actor_idx
-                break
+                return actor_idx
         
-        if idx_to_remove == -1:
+        return None
+
+    def UnloadActor(self, actor: Actor):
+        # find actor in top-level elements
+        idx = self.FindActor(actor)
+        
+        if idx == None:
             self.logger.info("Tried to unload actor %s/%s/%s from data tree, but could not be found!", actor.ref.layer,  actor.ref.sublayer, actor.ref.name)
             return
         
-        self.takeTopLevelItem(idx_to_remove)
+        self.takeTopLevelItem(idx)
     
     def AddKeysToActor(self, item: QTreeWidgetItem, val: dict):
         for k,v in val.items():
@@ -95,3 +109,15 @@ class ActorDataTreeWidget(QTreeWidget):
     def onItemDoubleClicked(self, item:  QTreeWidgetItem, col):
         if isinstance(item, ActorDataTreeItem):
             item.actor.OnSelected(ActorSelectionState.Unselected)
+        else:
+            # attempt to decode actor link
+            val = item.text(1)
+            if val.startswith("Root:") and val.count(":") > 5:
+                elements = val.split(":")
+                if (elements[0] == "Root" and elements[1] == "pScenario" and elements[3] == "dctSublayers"
+                    and elements[5] == "dctActors"):
+                    self.logger.info("Opening actor from link: %s/%s/%s", elements[2], elements[4], elements[6])
+                    # select actor
+                    ref = ActorRef(self.rom_manager.scenario, elements[2], elements[4], elements[6])
+                    actor = self.rom_manager.GetActorFromRef(ref)
+                    actor.OnSelected(ActorSelectionState.Selected)

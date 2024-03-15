@@ -65,7 +65,7 @@ class DreaditorWindow(QMainWindow):
         self.data_dock.setMinimumWidth(MINIMUM_DOCK_WIDTH)
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.data_dock)
 
-        self.actor_data_tree = ActorDataTreeWidget(None)
+        self.actor_data_tree = ActorDataTreeWidget(self.rom_manager, None)
         self.data_dock.setWidget(self.actor_data_tree)
 
         # create entity list dock
