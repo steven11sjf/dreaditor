@@ -2,8 +2,6 @@ from PyQt5.QtGui import QPainter, QColor, QPen, QBrush, QPolygonF
 from PyQt5.QtWidgets import QStyleOptionGraphicsItem, QWidget
 from PyQt5.QtCore import QRectF, QPointF
 
-from mercury_engine_data_structures.formats.bmscc import Bmscc
-
 from dreaditor.actor import Actor
 
 COLLIDER_PEN_UNSELECTED = QPen(QColor(255, 0, 0, 128), 15)
@@ -58,8 +56,6 @@ def paint_all_collision(actor: Actor, painter: QPainter | None, option: QStyleOp
 
 DOOR_PEN = QPen(QColor(0, 0, 0, 255), 10)
 def paint_door(actor: Actor, painter: QPainter | None, option: QStyleOptionGraphicsItem | None, widget: QWidget | None) -> QRectF:
-    if actor.getComponent("CDoorEmmyFXComponent"):
-        print(f"Painting emmy door {actor.ref.name}")
     vPos = QPointF(actor.level_data.vPos[0], -actor.level_data.vPos[1])
     door_type: str = actor.level_data.oActorDefLink.split('/')[2]
     entry_name = door_type if door_type in ["doorframe", "tunnelframe"] else "door"
