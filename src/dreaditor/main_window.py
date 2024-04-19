@@ -2,13 +2,13 @@ import logging
 import os
 from PyQt5.QtGui import QCloseEvent
 
-from PyQt5.QtWidgets import QDockWidget, QFileDialog, QMainWindow, QMenu, QLabel, QTreeWidget, QTreeWidgetItem
+from PyQt5.QtWidgets import QAction, QDockWidget, QFileDialog, QMainWindow, QMenu, QLabel, QTreeWidget, QTreeWidgetItem
 from PyQt5.QtCore import Qt, QSize
 
 from dreaditor import VERSION_STRING, get_log_folder, get_stylesheet
 from dreaditor.actor_reference import ActorRef
 from dreaditor.constants import Scenario, ScenarioHelpers
-from dreaditor.config import load_config, save_config
+from dreaditor.config import load_config, save_config, set_config_data, get_config_data
 from dreaditor.widgets.actor_data_tree import ActorDataTreeWidget
 from dreaditor.widgets.entity_list_tree import EntityListTreeWidget
 from dreaditor.widgets.scenario_viewer import ScenarioViewer
@@ -47,17 +47,42 @@ class DreaditorWindow(QMainWindow):
         fileMenu.addAction("Select RomFS").triggered.connect(self.selectRomFS)
         fileMenu.addAction("Open Log Folder").triggered.connect(self.openLogFolder)
 
-        editMenu = QMenu("&Select Scenario", self)
+        editMenu = QMenu("&Load Scenario", self)
         menuBar.addMenu(editMenu)
-        editMenu.addAction("Artaria").triggered.connect(lambda: self.openRegion(Scenario.ARTARIA))
-        editMenu.addAction("Burenia").triggered.connect(lambda: self.openRegion(Scenario.BURENIA))
-        editMenu.addAction("Cataris").triggered.connect(lambda: self.openRegion(Scenario.CATARIS))
-        editMenu.addAction("Dairon").triggered.connect(lambda: self.openRegion(Scenario.DAIRON))
-        editMenu.addAction("Elun").triggered.connect(lambda: self.openRegion(Scenario.ELUN))
-        editMenu.addAction("Ferenia").triggered.connect(lambda: self.openRegion(Scenario.FERENIA))
-        editMenu.addAction("Ghavoran").triggered.connect(lambda: self.openRegion(Scenario.GHAVORAN))
-        editMenu.addAction("Hanubia").triggered.connect(lambda: self.openRegion(Scenario.HANUBIA))
-        editMenu.addAction("Itorash").triggered.connect(lambda: self.openRegion(Scenario.ITORASH))
+
+        # helper to add edit menu functions and link the scenario enums
+        def addEditMenuAction(region: Scenario):
+            editMenu.addAction(region.name.capitalize()).triggered.connect(lambda: self.openRegion(region))
+        
+        addEditMenuAction(Scenario.ARTARIA)
+        addEditMenuAction(Scenario.BURENIA)
+        addEditMenuAction(Scenario.CATARIS)
+        addEditMenuAction(Scenario.DAIRON)
+        addEditMenuAction(Scenario.ELUN)
+        addEditMenuAction(Scenario.FERENIA)
+        addEditMenuAction(Scenario.GHAVORAN)
+        addEditMenuAction(Scenario.HANUBIA)
+        addEditMenuAction(Scenario.ITORASH)
+
+        paintMenu = QMenu("&Painting Options", self)
+        menuBar.addMenu(paintMenu)
+
+        # helper to add paint menu functions and link the config values
+        def addPaintMenuAction(text: str, config_name: str):
+            action = QAction(text, paintMenu)
+            action.setCheckable(True)
+            action.setChecked(get_config_data(config_name))
+            action.triggered.connect(lambda checked: self.onPaintOptionTriggered(checked, config_name))
+            paintMenu.addAction(action)
+                
+        addPaintMenuAction("Static Geometry", "paintGeometry")
+        addPaintMenuAction("Doors", "paintDoors")
+        addPaintMenuAction("Collision", "paintCollision")
+        addPaintMenuAction("Breakable Tiles", "paintBreakables")
+        addPaintMenuAction("Logic Shapes", "paintLogicShapes")
+        addPaintMenuAction("Logic Paths", "paintLogicPaths")
+        addPaintMenuAction("World Graph", "paintWorldGraph")
+
 
         # create actor details dock
         self.data_dock = QDockWidget("Data")
@@ -86,6 +111,10 @@ class DreaditorWindow(QMainWindow):
         self.central_dock.setWidget(self.scenario_viewer)
         self.setCentralWidget(self.central_dock)
 
+    def onPaintOptionTriggered(self, checked: bool, config_name: str):
+        set_config_data(config_name, checked)
+        self.scenario_viewer.viewport().update()
+    
     def selectRomFS(self):
         filename = QFileDialog.getExistingDirectory(self, "Open RomFS Folder")
         self.logger.info("Selected Directory: %s", filename)

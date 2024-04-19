@@ -51,6 +51,16 @@ def paint_all_collision(actor: Actor, painter: QPainter | None, option: QStyleOp
                 for p in polys:
                     painter.drawPolyline(p)
                     rect = rect.united(p.boundingRect())
+
+            elif entry.type == u'CIRCLE':
+                center = vPos + QPointF(entry.data.position[0], -entry.data.position[1])
+                size = entry.data.size
+                topLeft = center - QPointF(size, -size)
+                bottomRight = center + QPointF(size, -size)
+                circle_rect = QRectF(topLeft, bottomRight)
+
+                painter.drawEllipse(circle_rect)
+                rect = rect.united(circle_rect)
     
     return rect
 

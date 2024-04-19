@@ -10,8 +10,8 @@ from dreaditor.actor import Actor
 def paint_logicshape(actor: Actor, painter: QPainter | None, option: QStyleOptionGraphicsItem | None, widget: QWidget | None) -> QRectF:
     rect = QRectF()
 
-    painter.setBrush(QBrush(QColor(0, 255, 0, 72)))
-    painter.setPen(QPen(QColor(0,255,32,128), 15))
+    painter.setBrush(QBrush(QColor(255, 255, 64, 8)))
+    painter.setPen(QPen(QColor(255,255,64,128), 15))
     logicshape_comp = actor.getComponent("CLogicShapeComponent")
     if logicshape_comp.pLogicShape is None:
         return rect

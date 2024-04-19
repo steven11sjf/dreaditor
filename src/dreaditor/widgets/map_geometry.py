@@ -5,6 +5,8 @@ from PyQt5.QtWidgets import QGraphicsItem, QStyleOptionGraphicsItem, QWidget
 from PyQt5.QtCore import QRectF, QPointF
 from PyQt5.QtGui import QColor, QPen, QBrush, QPolygonF
 
+from dreaditor.config import get_config_data
+
 
 PEN = QPen(QColor(0, 0, 0, 255), 5.0)
 BRUSH = QBrush(QColor(64, 64, 64, 128))
@@ -59,6 +61,9 @@ class MapGeometry(QGraphicsItem):
         self.rect = QRectF(minimum, maximum)
 
     def paint(self, painter: QPainter | None, option: QStyleOptionGraphicsItem | None, widget: QWidget | None = ...) -> None:
+        if not get_config_data("paintGeometry"):
+            return
+        
         painter.setPen(QPen(self.color))
         painter.setBrush(QBrush(self.color))
 

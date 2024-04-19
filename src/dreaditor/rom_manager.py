@@ -34,7 +34,7 @@ class RomManager:
         self.logger = logging.getLogger(type(self).__name__)
         self.main_window = main_window
         self.editor = None
-        self.path = get_config_data("romfs_dir", None)
+        self.path = get_config_data("romfs_dir")
         self.logger.info("Path loaded from config: %s", self.path)
         self.actors = []
         self.SelectRom(self.path)

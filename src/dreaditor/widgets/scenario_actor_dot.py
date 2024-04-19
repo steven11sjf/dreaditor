@@ -6,7 +6,7 @@ from PyQt5.QtCore import QRectF, Qt, pyqtSlot
 from PyQt5.QtGui import QColor, QPen
 
 from dreaditor.actor import Actor, ActorSelectionState
-from dreaditor.painters.custom_painters import detailed_actor_paint, selected_actor_paint
+from dreaditor.painters.custom_painters import custom_painters, detailed_actor_paint, selected_actor_paint
 
 
 COLOR_ENTITY = QColor(0, 255, 0, 128)
@@ -48,9 +48,8 @@ class ScenarioActorDot(QGraphicsEllipseItem):
         self.setAcceptHoverEvents(True)
     
     def hoverEnterEvent(self, event: QGraphicsSceneHoverEvent | None) -> None:
-        self.setToolTip(f"{self.actor.ref.layer}/{self.actor.ref.sublayer}/{self.actor.ref.name}\n"
-                        + f"{self.actor.level_data.vPos[0]}, {self.actor.level_data.vPos[1]}")
-        
+        self.setToolTip(f"{self.actor.ref.layer}/{self.actor.ref.sublayer}/{self.actor.ref.name}")
+
     def mousePressEvent(self, event: QGraphicsSceneMouseEvent | None) -> None:
         if event.button() == Qt.MouseButton.RightButton:
             # clear selection on all items below cursor if right clicked
@@ -58,6 +57,7 @@ class ScenarioActorDot(QGraphicsEllipseItem):
             event.ignore()
         else:
             return super().mousePressEvent(event)
+        
     def mouseDoubleClickEvent(self, event: QGraphicsSceneMouseEvent | None) -> None:
         self.actor.OnSelected()
         event.ignore()
@@ -66,10 +66,7 @@ class ScenarioActorDot(QGraphicsEllipseItem):
         if not self.actor.isChecked:
             return
         
-        brect = detailed_actor_paint(self.actor, painter, option, widget)
-
-        if self.actor.isSelected:
-            brect = brect.united(selected_actor_paint(self.actor, painter, option, widget))
+        brect = custom_painters(self.actor, painter, option, widget)
 
         painter.setBrush(self.base_color)
         pen = QPen(OUTLINE_SELECTED if self.actor.isSelected else OUTLINE_UNSELECTED)
