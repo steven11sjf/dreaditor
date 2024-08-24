@@ -7,12 +7,12 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "dreaditor"
-version = "0.1.4"
+version = "0.1.5"
 authors = [
   {name = "hyperbola0"}
 ]
 dependencies = [
-  "mercury-engine-data-structures>=0.27.1",
+  "mercury-engine-data-structures>=0.31.1",
   "PyQt5>=5.15.10",
   "importlib_metadata>=7.0.2"
 ]

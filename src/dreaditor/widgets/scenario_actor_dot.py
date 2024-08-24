@@ -6,7 +6,7 @@ from PyQt5.QtCore import QRectF, Qt, pyqtSlot
 from PyQt5.QtGui import QColor, QPen
 
 from dreaditor.actor import Actor, ActorSelectionState
-from dreaditor.painters.custom_painters import custom_painters, detailed_actor_paint, selected_actor_paint
+from dreaditor.painters.custom_painters import custom_painters
 
 
 COLOR_ENTITY = QColor(0, 255, 0, 128)

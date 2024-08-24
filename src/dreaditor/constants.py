@@ -18,12 +18,16 @@ class ScenarioHelpers:
         return f"maps/levels/c10_samus/{scenario.value}"
     
     @classmethod
+    def scenario_file(cls, scenario: Scenario, extension: str) -> str:
+        return f"maps/levels/c10_samus/{scenario.value}/{scenario.value}.{extension}"
+    
+    @classmethod
     def brfld(cls, scenario: Scenario) -> str:
-        return f"maps/levels/c10_samus/{scenario.value}/{scenario.value}.brfld"
+        return cls.scenario_file(scenario, "brfld")
     
     @classmethod
     def bmmap(cls, scenario: Scenario) -> str:
-        return f"maps/levels/c10_samus/{scenario.value}/{scenario.value}.bmmap"
+        return cls.scenario_file(scenario, "bmmap")
 
     @classmethod
     def long_name(cls, scenario: Scenario) -> str:
