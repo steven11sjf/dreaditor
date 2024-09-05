@@ -1,9 +1,10 @@
 import logging
 import os
-from PyQt5.QtGui import QCloseEvent
+from PySide6.QtGui import QCloseEvent
 
-from PyQt5.QtWidgets import QAction, QDockWidget, QFileDialog, QMainWindow, QMenu, QLabel, QTreeWidget, QTreeWidgetItem
-from PyQt5.QtCore import Qt, QSize
+from PySide6.QtWidgets import QDockWidget, QFileDialog, QMainWindow, QMenu
+from PySide6.QtCore import Qt, QSize
+from PySide6.QtGui import QAction
 
 from dreaditor import VERSION_STRING, get_log_folder, get_stylesheet
 from dreaditor.actor_reference import ActorRef

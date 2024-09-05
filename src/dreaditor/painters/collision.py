@@ -1,6 +1,6 @@
-from PyQt5.QtGui import QPainter, QColor, QPen, QBrush, QPolygonF
-from PyQt5.QtWidgets import QStyleOptionGraphicsItem, QWidget
-from PyQt5.QtCore import QRectF, QPointF
+from PySide6.QtGui import QPainter, QColor, QPen, QBrush, QPolygonF
+from PySide6.QtWidgets import QStyleOptionGraphicsItem, QWidget
+from PySide6.QtCore import QRectF, QPointF
 
 from dreaditor.actor import Actor
 

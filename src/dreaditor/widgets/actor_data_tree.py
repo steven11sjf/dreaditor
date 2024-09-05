@@ -1,7 +1,7 @@
 import logging
 
-from PyQt5.QtWidgets import QTreeWidget, QTreeWidgetItem, QWidget
-from PyQt5.QtCore import pyqtSlot, QModelIndex
+from PySide6.QtWidgets import QTreeWidget, QTreeWidgetItem, QWidget
+from PySide6.QtCore import Slot
 
 from construct import Container, ListContainer
 
@@ -9,7 +9,6 @@ from dreaditor.actor import Actor, ActorSelectionState
 from dreaditor.actor_reference import ActorRef
 from dreaditor.rom_manager import RomManager
 from dreaditor.widgets.actor_data_tree_item import ActorDataTreeItem
-
 
 class ActorDataTreeWidget(QTreeWidget):
     rom_manager: RomManager
@@ -101,11 +100,11 @@ class ActorDataTreeWidget(QTreeWidget):
                 else:
                     self.AddKeysToActor(child, { str(i): value for i, value in enumerate(v)})
                     item.addChild(child)
-                
+
             else:
                 item.addChild(QTreeWidgetItem([k, str(v)]))
 
-    @pyqtSlot(QTreeWidgetItem, int)
+    @Slot(QTreeWidgetItem, int)
     def onItemDoubleClicked(self, item:  QTreeWidgetItem, col):
         if isinstance(item, ActorDataTreeItem):
             item.actor.OnSelected(ActorSelectionState.Unselected)

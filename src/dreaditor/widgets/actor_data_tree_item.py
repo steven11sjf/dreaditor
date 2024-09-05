@@ -1,6 +1,6 @@
 import logging
 
-from PyQt5.QtWidgets import QTreeWidget, QTreeWidgetItem, QWidget
+from PySide6.QtWidgets import QTreeWidgetItem
 
 from dreaditor.actor import Actor
 

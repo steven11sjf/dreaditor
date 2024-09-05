@@ -27,7 +27,7 @@ def load_config():
 def save_config():
     filepath = dreaditor.get_appdata_folder().joinpath(CONFIG_FILE_NAME)
 
-    filepath.write_text(json.dumps(_config))
+    filepath.write_text(json.dumps(_config, indent=4))
 
 def get_config_data(key: str):
     result = _config.get(key, None)

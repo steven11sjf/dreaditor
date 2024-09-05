@@ -4,8 +4,7 @@ from typing import TYPE_CHECKING
 from enum import Enum
 import logging
 
-from PyQt5.QtCore import QRectF, Qt
-from PyQt5.QtGui import QBrush, QColor
+from PySide6.QtCore import QRectF, Qt
 
 from mercury_engine_data_structures.formats.bmsad import Bmsad
 from mercury_engine_data_structures.formats.bmscc import Bmscc
