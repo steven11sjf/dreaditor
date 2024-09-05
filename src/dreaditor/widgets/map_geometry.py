@@ -1,9 +1,8 @@
 import math
-from PyQt5.QtGui import QPainter
 
-from PyQt5.QtWidgets import QGraphicsItem, QStyleOptionGraphicsItem, QWidget
-from PyQt5.QtCore import QRectF, QPointF
-from PyQt5.QtGui import QColor, QPen, QBrush, QPolygonF
+from PySide6.QtWidgets import QGraphicsItem, QStyleOptionGraphicsItem, QWidget
+from PySide6.QtCore import QRectF, QPointF
+from PySide6.QtGui import QColor, QPen, QBrush, QPainter, QPolygonF
 
 from dreaditor.config import get_config_data
 

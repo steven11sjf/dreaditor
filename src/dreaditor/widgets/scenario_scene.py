@@ -1,7 +1,6 @@
 import logging
 
-from PyQt5.QtWidgets import QGraphicsScene
-from PyQt5.QtCore import Qt, pyqtSlot
+from PySide6.QtWidgets import QGraphicsScene
 
 
 class ScenarioScene(QGraphicsScene):

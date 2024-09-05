@@ -1,9 +1,6 @@
-import logging
-from PyQt5.QtGui import QPainter
-
-from PyQt5.QtWidgets import QGraphicsEllipseItem, QGraphicsItem, QGraphicsSceneHoverEvent, QGraphicsSceneMouseEvent, QStyleOptionGraphicsItem, QWidget
-from PyQt5.QtCore import QRectF, Qt, pyqtSlot
-from PyQt5.QtGui import QColor, QPen
+from PySide6.QtWidgets import QGraphicsEllipseItem, QGraphicsItem, QGraphicsSceneHoverEvent, QGraphicsSceneMouseEvent, QStyleOptionGraphicsItem, QWidget
+from PySide6.QtCore import QRectF, Qt
+from PySide6.QtGui import QColor, QPainter, QPen
 
 from dreaditor.actor import Actor, ActorSelectionState
 from dreaditor.painters.custom_painters import custom_painters

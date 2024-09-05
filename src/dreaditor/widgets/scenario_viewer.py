@@ -1,8 +1,8 @@
 import logging
 
-from PyQt5.QtWidgets import QGraphicsView, QGraphicsPixmapItem
-from PyQt5.QtCore import QRectF, QPointF, Qt
-from PyQt5.QtGui import QBrush, QColor, QPen, QWheelEvent, QPixmap, QImage, QTransform
+from PySide6.QtWidgets import QGraphicsView, QGraphicsPixmapItem
+from PySide6.QtCore import QRectF, QPointF, Qt
+from PySide6.QtGui import QBrush, QColor, QPen, QWheelEvent
 
 from dreaditor import get_data_path
 from dreaditor.actor import Actor
@@ -29,6 +29,7 @@ class ScenarioViewer(QGraphicsView):
         self.logger = logging.getLogger(type(self).__name__)
         self.logger.info("Initialized ScenarioViewer!")
         self.rom_manager = rom_manager
+        self.setScene(scene)
         self.setDragMode(QGraphicsView.DragMode.ScrollHandDrag)
         self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
@@ -50,13 +51,13 @@ class ScenarioViewer(QGraphicsView):
         self.scene().addRect(QRectF(QPointF(min[0]-BORDER_PADDING, min[1]-BORDER_PADDING), QPointF(max[0]+BORDER_PADDING, max[1]+BORDER_PADDING)), PEN, BRUSH)
 
     def wheelEvent(self, event: QWheelEvent | None) -> None:
-        oldPos = self.mapToScene(event.pos())
+        oldPos = self.mapToScene(event.position().toPoint())
 
         zoomFactor = ZOOM_FACTOR if event.angleDelta().y() > 0 else 1 / ZOOM_FACTOR
 
         self.scale(zoomFactor, zoomFactor)
 
-        newPos = self.mapToScene(event.pos())
+        newPos = self.mapToScene(event.position().toPoint())
 
         delta  = newPos - oldPos
         self.translate(delta.x(), delta.y())

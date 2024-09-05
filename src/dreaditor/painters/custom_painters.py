@@ -1,6 +1,6 @@
-from PyQt5.QtGui import QPainter
-from PyQt5.QtWidgets import QStyleOptionGraphicsItem, QWidget
-from PyQt5.QtCore import QRectF
+from PySide6.QtGui import QPainter
+from PySide6.QtWidgets import QStyleOptionGraphicsItem, QWidget
+from PySide6.QtCore import QRectF
 
 from dreaditor.actor import Actor
 from dreaditor.painters.collision import paint_all_collision, paint_door, paint_tiles

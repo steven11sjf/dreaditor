@@ -1,7 +1,7 @@
 import logging
 
-from PyQt5.QtWidgets import QTreeWidget, QTreeWidgetItem, QWidget
-from PyQt5.QtCore import Qt, pyqtSlot
+from PySide6.QtWidgets import QTreeWidget, QTreeWidgetItem, QWidget
+from PySide6.QtCore import Qt, Slot
 
 from dreaditor.actor import Actor
 from dreaditor.widgets.actor_data_tree import ActorDataTreeWidget
@@ -59,12 +59,12 @@ class EntityListTreeWidget(QTreeWidget):
         
         return None
     
-    @pyqtSlot(QTreeWidgetItem, int)
+    @Slot(QTreeWidgetItem, int)
     def onItemChanged(self, item: QTreeWidgetItem, col):
         if isinstance(item, EntityListTreeWidgetItem):
             item.actor.UpdateCheckState(item.checkState(0) == Qt.CheckState.Checked)
 
-    @pyqtSlot(QTreeWidgetItem, int)
+    @Slot(QTreeWidgetItem, int)
     def onItemDoubleClicked(self, item:  QTreeWidgetItem, col):
         if isinstance(item,  EntityListTreeWidgetItem):
             item.actor.OnSelected()

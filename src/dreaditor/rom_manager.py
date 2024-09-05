@@ -10,8 +10,6 @@ from mercury_engine_data_structures.formats.bmmap import Bmmap
 from mercury_engine_data_structures.formats.bmsad import Bmsad
 from mercury_engine_data_structures.game_check import Game
 
-from PyQt5.QtGui import QColor
-
 from dreaditor.actor import Actor
 from dreaditor.actor_reference import ActorRef
 from dreaditor.constants import Scenario, ScenarioHelpers
