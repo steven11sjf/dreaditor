@@ -91,9 +91,11 @@ TILE_BRUSHES: dict[int, QBrush] = {
     1: QBrush(QColor(255, 255, 255, 128)), # powerbeam
     2: QBrush(QColor(255, 0, 255, 128)), # bomb
     3: QBrush(QColor(255, 0, 0, 128)), # missile
+    4: QBrush(QColor(0, 255, 0, 128)), # super missile
     5: QBrush(QColor(255, 165, 0, 128)), # powerbomb
     6: QBrush(QColor(0, 0, 255, 128)), # screw attack
     7: QBrush(QColor(128, 128, 128, 128)), # weight
+    8: QBrush(QColor(195, 195, 190, 128)), # baby hatchling
     9: QBrush(QColor(255, 255, 0, 128)) # speedboost
 }
 def paint_tiles(actor: Actor, painter: QPainter | None, option: QStyleOptionGraphicsItem | None, widget: QWidget | None) -> QRectF:
