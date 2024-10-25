@@ -8,7 +8,7 @@ from PySide6.QtGui import QAction
 
 from dreaditor import VERSION_STRING, get_log_folder, get_stylesheet
 from dreaditor.actor_reference import ActorRef
-from dreaditor.constants import Scenario, ScenarioHelpers
+from dreaditor.constants import Scenario
 from dreaditor.config import load_config, save_config, set_config_data, get_config_data
 from dreaditor.widgets.actor_data_tree import ActorDataTreeWidget
 from dreaditor.widgets.entity_list_tree import EntityListTreeWidget
@@ -21,6 +21,9 @@ DEFAULT_WINDOW_DIMENSIONS: QSize = QSize(1280, 720)
 MINIMUM_DOCK_WIDTH: int = 256
 
 class DreaditorWindow(QMainWindow):
+    edit_menu: QMenu
+    scenario_actions: dict[Scenario, QAction]
+
     actor_list_dock: QDockWidget
     entity_list_tree: EntityListTreeWidget
     central_dock: QDockWidget
@@ -35,7 +38,7 @@ class DreaditorWindow(QMainWindow):
         self.logger = logging.getLogger(type(self).__name__)
         load_config()
         self.rom_manager = RomManager(self)
-        
+
         self.setWindowTitle(f"Dreaditor v{VERSION_STRING}")
         self.resize(DEFAULT_WINDOW_DIMENSIONS)
         self.setStyleSheet(get_stylesheet("main-window.txt"))
@@ -48,22 +51,20 @@ class DreaditorWindow(QMainWindow):
         fileMenu.addAction("Select RomFS").triggered.connect(self.selectRomFS)
         fileMenu.addAction("Open Log Folder").triggered.connect(self.openLogFolder)
 
-        editMenu = QMenu("&Load Scenario", self)
-        menuBar.addMenu(editMenu)
+        self.edit_menu = QMenu("&Load Scenario", self)
+        menuBar.addMenu(self.edit_menu)
 
         # helper to add edit menu functions and link the scenario enums
-        def addEditMenuAction(region: Scenario):
-            editMenu.addAction(region.name.capitalize()).triggered.connect(lambda: self.openRegion(region))
+        def addEditMenuAction(region: Scenario, actions: dict[Scenario, QAction]):
+            action = QAction(region.long_name)
+            action.triggered.connect(lambda: self.openRegion(region))
+            actions[region] = action
         
-        addEditMenuAction(Scenario.ARTARIA)
-        addEditMenuAction(Scenario.BURENIA)
-        addEditMenuAction(Scenario.CATARIS)
-        addEditMenuAction(Scenario.DAIRON)
-        addEditMenuAction(Scenario.ELUN)
-        addEditMenuAction(Scenario.FERENIA)
-        addEditMenuAction(Scenario.GHAVORAN)
-        addEditMenuAction(Scenario.HANUBIA)
-        addEditMenuAction(Scenario.ITORASH)
+        self.scenario_actions = {}
+        for s in Scenario:
+            addEditMenuAction(s, self.scenario_actions)
+            
+
 
         paintMenu = QMenu("&Painting Options", self)
         menuBar.addMenu(paintMenu)
@@ -84,6 +85,7 @@ class DreaditorWindow(QMainWindow):
         addPaintMenuAction("Logic Paths", "paintLogicPaths")
         addPaintMenuAction("World Graph", "paintWorldGraph")
 
+        self.updateMenuForRomVersion()
 
         # create actor details dock
         self.data_dock = QDockWidget("Data")
@@ -120,13 +122,24 @@ class DreaditorWindow(QMainWindow):
         filename = QFileDialog.getExistingDirectory(self, "Open RomFS Folder")
         self.logger.info("Selected Directory: %s", filename)
         self.rom_manager.SelectRom(filename)
+        self.updateMenuForRomVersion()
+    
+    def updateMenuForRomVersion(self):
+        for act in self.edit_menu.actions():
+            self.edit_menu.removeAction(act)
+        
+        if self.rom_manager.editor:
+            ver = self.rom_manager.editor.version
+            for scenario, action in self.scenario_actions.items():
+                if ver in scenario.game_versions:
+                    self.edit_menu.addAction(action)
 
     def openLogFolder(self):
         self.logger.info("Opening logging dir")
         os.startfile(get_log_folder())
 
     def openRegion(self, scenario: Scenario):
-        self.setWindowTitle(f"Dreaditor v{VERSION_STRING}: {ScenarioHelpers.long_name(scenario)}")
+        self.setWindowTitle(f"Dreaditor v{VERSION_STRING}: {scenario.long_name}")
         self.entity_list_tree.OnNewScenarioSelected()
         self.scenario_viewer.OnNewScenarioSelected(scenario)
         self.actor_data_tree.clear()

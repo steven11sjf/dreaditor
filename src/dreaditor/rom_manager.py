@@ -9,10 +9,11 @@ from mercury_engine_data_structures.formats.brfld import Brfld
 from mercury_engine_data_structures.formats.bmmap import Bmmap
 from mercury_engine_data_structures.formats.bmsad import Bmsad
 from mercury_engine_data_structures.game_check import Game
+from mercury_engine_data_structures.romfs import ExtractedRomFs
 
 from dreaditor.actor import Actor
 from dreaditor.actor_reference import ActorRef
-from dreaditor.constants import Scenario, ScenarioHelpers
+from dreaditor.constants import Scenario
 from dreaditor.config import get_config_data, set_config_data
 
 if TYPE_CHECKING:
@@ -40,12 +41,13 @@ class RomManager:
     def SelectRom(self, path: str):
         self.path = path
         try:
-            self.editor = FileTreeEditor(Path(path), target_game=Game.DREAD)
+            self.editor = FileTreeEditor(ExtractedRomFs(Path(path)), target_game=Game.DREAD)
             set_config_data("romfs_dir", path)
+            self.logger.info(f"Selected RomFS at {path} with version {self.editor.version}")
         except:
             self.editor = None
             self.path = None
-            self.logger.warn("RomFS is not valid! path=%s", path)
+            self.logger.warning("RomFS is not valid! path=%s", path)
 
     def AssertRomSelected(self) -> bool:
         if self.editor is None:
@@ -59,16 +61,16 @@ class RomManager:
     
     def OpenScenario(self, scenario: Scenario):
         if not self.AssertRomSelected():
-            self.logger.warn("No ROM selected!")
+            self.logger.warning("No ROM selected!")
             return
 
         self.scenario = scenario
-        self.brfld = self.editor.get_parsed_asset(ScenarioHelpers.brfld(scenario), type_hint=Brfld)
+        self.brfld = self.editor.get_parsed_asset(scenario.scenario_file("brfld"), type_hint=Brfld)
         self.isScenarioLoaded = True
 
         self.actors.clear()
 
-        self.bmmap = self.editor.get_parsed_asset(ScenarioHelpers.bmmap(scenario), type_hint=Bmmap)
+        self.bmmap = self.editor.get_parsed_asset(scenario.scenario_file("bmmap"), type_hint=Bmmap)
 
         # draw map
         gridDef = self.bmmap.raw.Root.gridDef
@@ -106,7 +108,7 @@ class RomManager:
         actors = [actor for actor in self.actors if actor.ref == ref]
 
         if len(actors) != 1:
-            self.logger.warn("Actor not retrieved! Found %i matching actors", len(actors))
+            self.logger.warning("Actor not retrieved! Found %i matching actors", len(actors))
             return None
         
         return actors[0]

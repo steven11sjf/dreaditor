@@ -17,7 +17,7 @@ QMenu {
     color: white;
 }
 
-QMenu::item:selected {
+QMenu::item:selected:enabled {
     background-color: #888
 }
 

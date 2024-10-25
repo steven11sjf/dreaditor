@@ -47,7 +47,7 @@ class ActorDataTreeWidget(QTreeWidget):
             bmsad_data.addChildren([bmsad_comps, bmsad_actionsets, bmsad_soundfx])
             top_actor.addChild(bmsad_data)
         else:
-            self.logger.warn("The BMSAD for actor %s/%s/%s cannot be accessed due to a bug in mercury-engine-data-structures",
+            self.logger.warning("The BMSAD for actor %s/%s/%s cannot be accessed due to a bug in mercury-engine-data-structures",
                              actor.ref.layer, actor.ref.sublayer, actor.ref.name)
 
         if actor.bmscc != None:

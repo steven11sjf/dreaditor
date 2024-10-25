@@ -6,7 +6,7 @@ from PySide6.QtGui import QBrush, QColor, QPen, QWheelEvent
 
 from dreaditor import get_data_path
 from dreaditor.actor import Actor
-from dreaditor.constants import Scenario, ScenarioHelpers
+from dreaditor.constants import Scenario
 from dreaditor.widgets.scenario_actor_dot import ScenarioActorDot
 from dreaditor.widgets.scenario_scene import ScenarioScene
 from dreaditor.widgets.map_geometry import MapGeometry
