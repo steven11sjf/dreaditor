@@ -36,7 +36,7 @@ def get_stylesheet(sheet_name: str) -> str:
     
     return file.read_text()
 
-def setup_logging(default_level: str,  log_to_file: Path | None, quiet: bool = False):
+def setup_logging(default_level: str, file_level: str, log_to_file: Path | None, quiet: bool = False):
     import logging.config
     import logging.handlers
     import time
@@ -52,7 +52,7 @@ def setup_logging(default_level: str,  log_to_file: Path | None, quiet: bool = F
 
     if log_to_file is not None:
         handlers["local_app_data"] = {
-            "level": "DEBUG",
+            "level": file_level,
             "formatter": "default",
             "class": "logging.handlers.TimedRotatingFileHandler",
             "filename": log_to_file,
@@ -73,7 +73,7 @@ def setup_logging(default_level: str,  log_to_file: Path | None, quiet: bool = F
             "loggers": {
             },
             "root": {
-                "level": default_level,
+                "level": "DEBUG",
                 "handlers": list(handlers.keys()),
             },
         }

@@ -21,11 +21,6 @@ QMenu::item:selected:enabled {
     background-color: #888
 }
 
-QMenu::item:!enabled {
-    color: #bbbbbb;
-    background-color: #111111
-}
-
 QDockWidget {
     background-color: #333333;
     color: white

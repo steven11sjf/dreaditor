@@ -43,6 +43,7 @@ class RomManager:
         try:
             self.editor = FileTreeEditor(ExtractedRomFs(Path(path)), target_game=Game.DREAD)
             set_config_data("romfs_dir", path)
+            self.logger.info(f"Selected RomFS at {path} with version {self.editor.version}")
         except:
             self.editor = None
             self.path = None

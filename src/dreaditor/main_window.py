@@ -21,7 +21,9 @@ DEFAULT_WINDOW_DIMENSIONS: QSize = QSize(1280, 720)
 MINIMUM_DOCK_WIDTH: int = 256
 
 class DreaditorWindow(QMainWindow):
+    edit_menu: QMenu
     scenario_actions: dict[Scenario, QAction]
+
     actor_list_dock: QDockWidget
     entity_list_tree: EntityListTreeWidget
     central_dock: QDockWidget
@@ -49,14 +51,13 @@ class DreaditorWindow(QMainWindow):
         fileMenu.addAction("Select RomFS").triggered.connect(self.selectRomFS)
         fileMenu.addAction("Open Log Folder").triggered.connect(self.openLogFolder)
 
-        editMenu = QMenu("&Load Scenario", self)
-        menuBar.addMenu(editMenu)
+        self.edit_menu = QMenu("&Load Scenario", self)
+        menuBar.addMenu(self.edit_menu)
 
         # helper to add edit menu functions and link the scenario enums
         def addEditMenuAction(region: Scenario, actions: dict[Scenario, QAction]):
-            action = editMenu.addAction(region.long_name)
+            action = QAction(region.long_name)
             action.triggered.connect(lambda: self.openRegion(region))
-            action.setEnabled(False)
             actions[region] = action
         
         self.scenario_actions = {}
@@ -124,13 +125,14 @@ class DreaditorWindow(QMainWindow):
         self.updateMenuForRomVersion()
     
     def updateMenuForRomVersion(self):
+        for act in self.edit_menu.actions():
+            self.edit_menu.removeAction(act)
+        
         if self.rom_manager.editor:
             ver = self.rom_manager.editor.version
             for scenario, action in self.scenario_actions.items():
                 if ver in scenario.game_versions:
-                    action.setEnabled(True)
-                else:
-                    action.setEnabled(False)
+                    self.edit_menu.addAction(action)
 
     def openLogFolder(self):
         self.logger.info("Opening logging dir")
