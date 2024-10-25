@@ -52,7 +52,7 @@ def paint_logicshape(actor: Actor, painter: QPainter | None, option: QStyleOptio
             ys = s * halfExtent.y()
             yc = c * halfExtent.y()
 
-            actor.logger.warn("A COBoxShape2D actually has a rotation value! Make sure %s/%s/%s is rendered correctly", 
+            actor.logger.warning("A COBoxShape2D actually has a rotation value! Make sure %s/%s/%s is rendered correctly", 
                               actor.ref.layer, actor.ref.sublayer, actor.ref.name)
             poly = QPolygonF()
             topleft = QPointF(-xc + ys, -xs - yc)
