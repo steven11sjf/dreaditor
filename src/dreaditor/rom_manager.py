@@ -5,9 +5,11 @@ import logging
 from pathlib import Path
 
 from mercury_engine_data_structures.file_tree_editor import FileTreeEditor
-from mercury_engine_data_structures.formats.brfld import Brfld
 from mercury_engine_data_structures.formats.bmmap import Bmmap
+from mercury_engine_data_structures.formats.bmscc import Bmscc
 from mercury_engine_data_structures.formats.bmsad import Bmsad
+from mercury_engine_data_structures.formats.brfld import Brfld, ActorLayer
+from mercury_engine_data_structures.formats.brsa import Brsa
 from mercury_engine_data_structures.game_check import Game
 from mercury_engine_data_structures.romfs import ExtractedRomFs
 
@@ -102,6 +104,38 @@ class RomManager:
                     self.actors.append(actor)
                     self.main_window.entity_list_tree.addBrfldItem(actor)
                     self.main_window.scenario_viewer.addActor(actor)
+
+        self.bmscc = self.editor.get_parsed_asset(scenario.scenario_file("bmscc"), type_hint=Bmscc)
+        ccs: dict[str, dict] = {cc.name: cc for cc in self.bmscc.raw.layers[0].entries}
+
+        self.brsa = self.editor.get_parsed_asset(scenario.scenario_file("brsa"), type_hint=Brsa)
+        for setup in self.brsa.raw.Root.pSubareaManager.vSubareaSetups:
+            setup_id = setup.sId
+            for subarea in setup.vSubareaConfigs:
+                subarea_id = subarea.sId
+                actor_groups = {
+                    ActorLayer.LIGHTS: subarea.asItemsIds[1],
+                    ActorLayer.SOUNDS: subarea.asItemsIds[2],
+                    ActorLayer.ENTITIES: subarea.asItemsIds[4],
+                }
+
+                for actor_layer, actor_group_name in actor_groups.items():
+                    if actor_group_name == "":
+                        continue
+                    try:
+                        ag = self.brfld.get_actor_group(actor_group_name, actor_layer)
+                        for actor_link in ag:
+                            actor_link_parts = actor_link.split(":")
+                            self.main_window.subareas_list_tree.add_item(
+                                setup_id, 
+                                subarea_id, 
+                                actor_group_name,
+                                self.GetActorFromRef(ActorRef(scenario, actor_link_parts[2], actor_link_parts[4], actor_link_parts[6]))
+                            )
+                    except KeyError:
+                        self.logger.info("Missing actor group: %s", actor_group_name)
+                        continue
+
         
     
     def GetActorFromRef(self, ref: ActorRef) -> Actor | None:

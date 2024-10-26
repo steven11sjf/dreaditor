@@ -77,6 +77,9 @@ class Actor:
                 return comp
         return None
 
+    def add_entity_list_item(self, item: EntityListTreeWidgetItem):
+        self.entity_list_items.append(item)
+
     def OnHovered(self):
         for eli in self.entity_list_items:
             pass # set bg to light gray
@@ -110,4 +113,5 @@ class Actor:
     def UpdateCheckState(self, state: bool):
         self.isChecked = state
         self.actor_dot.update()
-        
+        for eli in self.entity_list_items:
+            eli.setCheckState(0, Qt.CheckState.Checked if state else Qt.CheckState.Unchecked)

@@ -8,9 +8,10 @@ from dreaditor.widgets.actor_data_tree import ActorDataTreeWidget
 from dreaditor.widgets.entity_list_tree_item import EntityListTreeWidgetItem
 
 
-class EntityListTreeWidget(QTreeWidget):
-    brfld_node: QTreeWidgetItem
-    actors: list[EntityListTreeWidgetItem]
+class SubareasListTree(QTreeWidget):
+    base_node: QTreeWidgetItem
+    cameras: list[QTreeWidget]
+    actors: list[QTreeWidgetItem]
     actor_data_tree: ActorDataTreeWidget
 
     def __init__(self, actor_data_tree: ActorDataTreeWidget, parent: QWidget | None = ...) -> None:
@@ -22,29 +23,31 @@ class EntityListTreeWidget(QTreeWidget):
         self.sortByColumn(0, Qt.SortOrder.AscendingOrder)
         self.itemChanged.connect(self.onItemChanged)
         self.itemDoubleClicked.connect(self.onItemDoubleClicked)
-        # TODO set hover state, or possibly single-click state
 
         self.actor_data_tree = actor_data_tree
+        self.cameras = []
         self.actors = []
 
-        self.brfld_node = QTreeWidgetItem(["BRFLD"])
-        self.brfld_node.setFlags(self.brfld_node.flags() | Qt.ItemFlag.ItemIsAutoTristate | Qt.ItemFlag.ItemIsUserCheckable)
-        self.brfld_node.setCheckState(0, Qt.CheckState.Unchecked)
+        self.base_node = QTreeWidgetItem(["Collision Cameras"])
+        self.base_node.setFlags(self.base_node.flags() | Qt.ItemFlag.ItemIsAutoTristate | Qt.ItemFlag.ItemIsUserCheckable)
+        self.base_node.setCheckState(0, Qt.CheckState.Unchecked)
 
-        self.addTopLevelItem(self.brfld_node)
-        self.brfld_node.setExpanded(True)
-    
-    def OnNewScenarioSelected(self):
+        self.addTopLevelItem(self.base_node)
+        self.base_node.setExpanded(True)
+
+    def on_new_scenario_selected(self):
         self.actors = []
-        self.brfld_node.takeChildren()
+        self.cameras = []
+        self.base_node.takeChildren()
 
-    def addBrfldItem(self, actor: Actor):
-        layerItem = self.selectChildOfWidgetItem(self.brfld_node, actor.ref.layer, True)
-        sublayerItem = self.selectChildOfWidgetItem(layerItem, actor.ref.sublayer, True)
-        actorItem = EntityListTreeWidgetItem(actor)
-        sublayerItem.addChild(actorItem)
-        actor.add_entity_list_item(actorItem)
+    def add_item(self, setup_id: str, cc_name: str, actor_layer: str, actor: Actor):
+        setup_widget = self.selectChildOfWidgetItem(self.base_node, setup_id, True)
+        cc_widget = self.selectChildOfWidgetItem(setup_widget, cc_name, True)
+        actor_layer_item = self.selectChildOfWidgetItem(cc_widget, actor_layer, True)
 
+        actor_item = EntityListTreeWidgetItem(actor)
+        actor_layer_item.addChild(actor_item)
+        actor.add_entity_list_item(actor_item)
 
     def selectChildOfWidgetItem(self, item: QTreeWidgetItem, text: str, create_if_nonexistent = False) -> QTreeWidgetItem | None:
         
@@ -69,26 +72,3 @@ class EntityListTreeWidget(QTreeWidget):
     def onItemDoubleClicked(self, item:  QTreeWidgetItem, col):
         if isinstance(item,  EntityListTreeWidgetItem):
             item.actor.OnSelected()
-    
-    def SelectBrfldNode(self, layer: str, sublayer: str, sName: str):
-        node = self.FindBrfldNode(layer, sublayer, sName)
-
-        if node is None:
-            return
-        
-        is_checked = node.checkState(0)
-        if is_checked == Qt.CheckState.Unchecked:
-            node.setCheckState(0, Qt.CheckState.Checked)
-        else:
-            node.setCheckState(0, Qt.CheckState.Unchecked)
-
-    def FindBrfldNode(self, layer: str, sublayer: str, name: str):
-        matching_actors = [item for item in self.actors 
-                           if (item.reference.layer == layer and item.reference.sublayer == sublayer and item.reference.name == name)]
-        
-        if len(matching_actors) == 1:
-            return matching_actors[0]
-        
-        self.logger.info("Node %s/%s/%s matched %i items", layer, sublayer, name, len(matching_actors))
-
-        return None

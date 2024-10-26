@@ -2,7 +2,7 @@ import logging
 import os
 from PySide6.QtGui import QCloseEvent
 
-from PySide6.QtWidgets import QDockWidget, QFileDialog, QMainWindow, QMenu
+from PySide6.QtWidgets import QDockWidget, QFileDialog, QMainWindow, QMenu, QTabWidget
 from PySide6.QtCore import Qt, QSize
 from PySide6.QtGui import QAction
 
@@ -11,6 +11,7 @@ from dreaditor.actor_reference import ActorRef
 from dreaditor.constants import Scenario
 from dreaditor.config import load_config, save_config, set_config_data, get_config_data
 from dreaditor.widgets.actor_data_tree import ActorDataTreeWidget
+from dreaditor.widgets.subareas_list_tree import SubareasListTree
 from dreaditor.widgets.entity_list_tree import EntityListTreeWidget
 from dreaditor.widgets.scenario_viewer import ScenarioViewer
 from dreaditor.widgets.scenario_scene import ScenarioScene
@@ -42,6 +43,7 @@ class DreaditorWindow(QMainWindow):
         self.setWindowTitle(f"Dreaditor v{VERSION_STRING}")
         self.resize(DEFAULT_WINDOW_DIMENSIONS)
         self.setStyleSheet(get_stylesheet("main-window.txt"))
+        self.setTabPosition(Qt.DockWidgetArea.LeftDockWidgetArea, QTabWidget.TabPosition.North)
 
         # create menu bar
         menuBar = self.menuBar()
@@ -105,6 +107,15 @@ class DreaditorWindow(QMainWindow):
         self.entity_list_tree = EntityListTreeWidget(self.actor_data_tree, None)
         self.actor_list_dock.setWidget(self.entity_list_tree)
 
+        # create subareas dock
+        self.subareas_dock = QDockWidget("Collision Cameras")
+        self.subareas_dock.setFeatures(QDockWidget.DockWidgetFeature.NoDockWidgetFeatures)
+        self.subareas_dock.setMinimumWidth(MINIMUM_DOCK_WIDTH)
+        self.tabifyDockWidget(self.actor_list_dock, self.subareas_dock)
+
+        self.subareas_list_tree = SubareasListTree(self.actor_data_tree, None)
+        self.subareas_dock.setWidget(self.subareas_list_tree)
+
         # create central dock
         self.central_dock = QDockWidget("Area Map")
         self.central_dock.setFeatures(QDockWidget.DockWidgetFeature.NoDockWidgetFeatures)
@@ -141,6 +152,7 @@ class DreaditorWindow(QMainWindow):
     def openRegion(self, scenario: Scenario):
         self.setWindowTitle(f"Dreaditor v{VERSION_STRING}: {scenario.long_name}")
         self.entity_list_tree.OnNewScenarioSelected()
+        self.subareas_list_tree.on_new_scenario_selected()
         self.scenario_viewer.OnNewScenarioSelected(scenario)
         self.actor_data_tree.clear()
         self.rom_manager.OpenScenario(scenario)
