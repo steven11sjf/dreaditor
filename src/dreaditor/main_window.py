@@ -1,25 +1,25 @@
+from __future__ import annotations
+
 import logging
 import os
-from PySide6.QtGui import QCloseEvent
 
+from PySide6.QtCore import QSize, Qt
+from PySide6.QtGui import QAction, QCloseEvent
 from PySide6.QtWidgets import QDockWidget, QFileDialog, QMainWindow, QMenu, QTabWidget
-from PySide6.QtCore import Qt, QSize
-from PySide6.QtGui import QAction
 
 from dreaditor import VERSION_STRING, get_log_folder, get_stylesheet
-from dreaditor.actor_reference import ActorRef
+from dreaditor.config import get_config_data, save_config, set_config_data
 from dreaditor.constants import Scenario
-from dreaditor.config import load_config, save_config, set_config_data, get_config_data
-from dreaditor.widgets.actor_data_tree import ActorDataTreeWidget
-from dreaditor.widgets.subareas_list_tree import SubareasListTree
-from dreaditor.widgets.entity_list_tree import EntityListTreeWidget
-from dreaditor.widgets.scenario_viewer import ScenarioViewer
-from dreaditor.widgets.scenario_scene import ScenarioScene
 from dreaditor.rom_manager import RomManager
-
+from dreaditor.widgets.actor_data_tree import ActorDataTreeWidget
+from dreaditor.widgets.entity_list_tree import EntityListTreeWidget
+from dreaditor.widgets.scenario_scene import ScenarioScene
+from dreaditor.widgets.scenario_viewer import ScenarioViewer
+from dreaditor.widgets.subareas_list_tree import SubareasListTree
 
 DEFAULT_WINDOW_DIMENSIONS: QSize = QSize(1280, 720)
 MINIMUM_DOCK_WIDTH: int = 256
+
 
 class DreaditorWindow(QMainWindow):
     edit_menu: QMenu
@@ -35,9 +35,8 @@ class DreaditorWindow(QMainWindow):
     rom_manager: RomManager
 
     def __init__(self, *args, **kwargs):
-        super(DreaditorWindow, self).__init__(*args, *kwargs)
+        super().__init__(*args, *kwargs)
         self.logger = logging.getLogger(type(self).__name__)
-        load_config()
         self.rom_manager = RomManager(self)
 
         self.setWindowTitle(f"Dreaditor v{VERSION_STRING}")
@@ -61,12 +60,10 @@ class DreaditorWindow(QMainWindow):
             action = QAction(region.long_name)
             action.triggered.connect(lambda: self.open_region(region))
             actions[region] = action
-        
+
         self.scenario_actions = {}
         for s in Scenario:
             _add_edit_menu_action(s, self.scenario_actions)
-            
-
 
         paintMenu = QMenu("&Painting Options", self)
         menuBar.addMenu(paintMenu)
@@ -78,7 +75,7 @@ class DreaditorWindow(QMainWindow):
             action.setChecked(get_config_data(config_name))
             action.triggered.connect(lambda checked: self.on_paint_option_triggered(checked, config_name))
             paintMenu.addAction(action)
-                
+
         _add_paint_menu_action("Static Geometry", "paintGeometry")
         _add_paint_menu_action("Collision Cameras", "paintCollisionCameras")
         _add_paint_menu_action("Doors", "paintDoors")
@@ -104,7 +101,7 @@ class DreaditorWindow(QMainWindow):
         self.actor_list_dock.setFeatures(QDockWidget.DockWidgetFeature.NoDockWidgetFeatures)
         self.actor_list_dock.setMinimumWidth(MINIMUM_DOCK_WIDTH)
         self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.actor_list_dock)
-        
+
         self.entity_list_tree = EntityListTreeWidget(self.actor_data_tree, None)
         self.actor_list_dock.setWidget(self.entity_list_tree)
 
@@ -132,17 +129,17 @@ class DreaditorWindow(QMainWindow):
     def on_paint_option_triggered(self, checked: bool, config_name: str):
         set_config_data(config_name, checked)
         self.scenario_viewer.viewport().update()
-    
+
     def select_rom_fs(self):
         filename = QFileDialog.getExistingDirectory(self, "Open RomFS Folder")
         self.logger.info("Selected Directory: %s", filename)
         self.rom_manager.select_rom(filename)
         self.update_menu_for_rom_versions()
-    
+
     def update_menu_for_rom_versions(self):
         for act in self.edit_menu.actions():
             self.edit_menu.removeAction(act)
-        
+
         if self.rom_manager.editor:
             ver = self.rom_manager.editor.version
             for scenario, action in self.scenario_actions.items():
@@ -163,4 +160,3 @@ class DreaditorWindow(QMainWindow):
 
     def closeEvent(self, a0: QCloseEvent | None) -> None:
         save_config()
-        

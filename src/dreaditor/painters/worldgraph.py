@@ -1,14 +1,23 @@
+from __future__ import annotations
+
 import math
+from typing import TYPE_CHECKING
 
-from PySide6.QtGui import QFont, QPainter, QColor, QPen
-from PySide6.QtWidgets import QStyleOptionGraphicsItem, QWidget
-from PySide6.QtCore import QRectF, QPointF
+from PySide6.QtCore import QPointF, QRectF
+from PySide6.QtGui import QColor, QFont, QPainter, QPen
 
-from dreaditor.actor import Actor
+if TYPE_CHECKING:
+    from PySide6.QtWidgets import QStyleOptionGraphicsItem, QWidget
+
+    from dreaditor.actor import Actor
 
 GRAPH_COLOR = QColor(255, 255, 255, 128)
 TEXT_COLOR = QColor(0, 0, 0, 150)
-def paint_worldgraph(actor: Actor, painter: QPainter | None, option: QStyleOptionGraphicsItem | None, widget: QWidget | None) -> QRectF:
+
+
+def paint_worldgraph(
+    actor: Actor, painter: QPainter | None, option: QStyleOptionGraphicsItem | None, widget: QWidget | None
+) -> QRectF:
     worldgraph = actor.getComponent("CWorldGraph")
     nodes: dict[str, QPointF] = {}
     topLeft = QPointF(math.inf, math.inf)

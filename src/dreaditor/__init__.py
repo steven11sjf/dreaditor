@@ -1,19 +1,22 @@
+from __future__ import annotations
+
 import logging
 import os
-import importlib_metadata
-
 from pathlib import Path
 
+import importlib_metadata
 
 VERSION_STRING = importlib_metadata.version("dreaditor")
 
+
 def get_appdata_folder() -> Path:
-    appdata = Path(os.getenv('APPDATA'))
+    appdata = Path(os.getenv("APPDATA"))
     folder = appdata.joinpath("Dreaditor")
 
     if not Path.exists(folder):
         os.mkdir(folder)
     return folder
+
 
 def get_log_folder() -> Path:
     appdata = get_appdata_folder()
@@ -24,17 +27,20 @@ def get_log_folder() -> Path:
 
     return logFolder
 
+
 def get_data_path() -> Path:
     return Path(__file__).parent.joinpath("data")
 
+
 def get_stylesheet(sheet_name: str) -> str:
     file = get_data_path().joinpath("qt-stylesheets", sheet_name)
-    
+
     if not file.exists():
         logging.getLogger(__name__).error("Missing stylesheet: %s", file)
         return ""
-    
+
     return file.read_text()
+
 
 def setup_logging(default_level: str, file_level: str, log_to_file: Path | None, quiet: bool = False):
     import logging.config
@@ -70,8 +76,7 @@ def setup_logging(default_level: str, file_level: str, log_to_file: Path | None,
                 }
             },
             "handlers": handlers,
-            "loggers": {
-            },
+            "loggers": {},
             "root": {
                 "level": "DEBUG",
                 "handlers": list(handlers.keys()),

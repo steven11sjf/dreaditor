@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 from enum import Enum
-from mercury_engine_data_structures.game_check import GameVersion
 
+from mercury_engine_data_structures.game_check import GameVersion
 
 
 class Scenario(Enum):
@@ -22,7 +22,7 @@ class Scenario(Enum):
     ARTARIA_CENTRAL_UNIT_BOSS_RUSH = "s203_bossrush_cu_artaria", [GameVersion.DREAD_2_1_0]
     DROGYGA_BOSS_RUSH = "s204_bossrush_drogyga", [GameVersion.DREAD_2_1_0]
     GOLD_ROBOT_BOSS_RUSH = "s205_bossrush_strong_rcs", [GameVersion.DREAD_2_1_0]
-    ESCUE_BOSS_RUSH =  "s206_bossrush_escue", [GameVersion.DREAD_2_1_0]
+    ESCUE_BOSS_RUSH = "s206_bossrush_escue", [GameVersion.DREAD_2_1_0]
     EXPERIMENT_Z57_BOSS_RUSH = "s207_bossrush_cooldownx", [GameVersion.DREAD_2_1_0]
     DOUBLE_ROBOTS_BOSS_RUSH = "s208_bossrush_strong_rcs_x2", [GameVersion.DREAD_2_1_0]
     GOLZUNA_BOSS_RUSH = "s209_bossrush_golzuna", [GameVersion.DREAD_2_1_0]
@@ -34,12 +34,12 @@ class Scenario(Enum):
         member = object.__new__(cls)
         member._value_ = value
 
-        if versions == None:
+        if versions is None:
             versions = [
-                GameVersion.DREAD_1_0_0, 
-                GameVersion.DREAD_1_0_1, 
-                GameVersion.DREAD_2_0_0, 
-                GameVersion.DREAD_2_1_0
+                GameVersion.DREAD_1_0_0,
+                GameVersion.DREAD_1_0_1,
+                GameVersion.DREAD_2_0_0,
+                GameVersion.DREAD_2_1_0,
             ]
 
         member.game_versions = versions

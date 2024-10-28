@@ -1,12 +1,18 @@
-from PySide6.QtWidgets import QTreeWidget, QTreeWidgetItem, QWidget
-from PySide6.QtCore import Qt, Slot
+from __future__ import annotations
 
-from dreaditor.actor import Actor
-from dreaditor.widgets.collision_camera_item import CollisionCameraItem
-from dreaditor.widgets.actor_data_tree import ActorDataTreeWidget
+from typing import TYPE_CHECKING
+
+from PySide6.QtCore import Qt, Slot
+from PySide6.QtWidgets import QTreeWidget, QTreeWidgetItem, QWidget
+
 from dreaditor.widgets.actor_list_tree import ActorListTree
 from dreaditor.widgets.entity_list_tree_item import EntityListTreeWidgetItem
 from dreaditor.widgets.subarea_tree_item import SubareaTreeWidgetItem
+
+if TYPE_CHECKING:
+    from dreaditor.actor import Actor
+    from dreaditor.widgets.actor_data_tree import ActorDataTreeWidget
+    from dreaditor.widgets.collision_camera_item import CollisionCameraItem
 
 
 class SubareasListTree(ActorListTree):
@@ -35,7 +41,7 @@ class SubareasListTree(ActorListTree):
             setup_widget.addChild(cc_widget)
 
         actor_layer_widget = self.select_child_of_widget_item(cc_widget, actor_layer, True)
-        
+
         actor_item = EntityListTreeWidgetItem(actor)
         actor_layer_widget.addChild(actor_item)
         actor.add_entity_list_item(actor_item)

@@ -1,12 +1,15 @@
-import logging
+from __future__ import annotations
 
-from PySide6.QtWidgets import QTreeWidget, QTreeWidgetItem, QWidget
-from PySide6.QtCore import Qt, Slot
+from typing import TYPE_CHECKING
 
-from dreaditor.actor import Actor
-from dreaditor.widgets.actor_data_tree import ActorDataTreeWidget
 from dreaditor.widgets.actor_list_tree import ActorListTree
-from dreaditor.widgets.entity_list_tree_item import EntityListTreeWidgetItem
+
+if TYPE_CHECKING:
+    from PySide6.QtWidgets import QWidget
+
+    from dreaditor.actor import Actor
+    from dreaditor.widgets.actor_data_tree import ActorDataTreeWidget
+    from dreaditor.widgets.entity_list_tree_item import EntityListTreeWidgetItem
 
 
 class EntityListTreeWidget(ActorListTree):

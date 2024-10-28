@@ -1,22 +1,31 @@
+from __future__ import annotations
+
 import math
 
+from PySide6.QtCore import QPointF, QRectF
+from PySide6.QtGui import QBrush, QColor, QPainter, QPen, QPolygonF
 from PySide6.QtWidgets import QGraphicsItem, QStyleOptionGraphicsItem, QWidget
-from PySide6.QtCore import QRectF, QPointF
-from PySide6.QtGui import QColor, QPen, QBrush, QPainter, QPolygonF
 
 from dreaditor.config import get_config_data
-
 
 PEN = QPen(QColor(0, 0, 0, 255), 5.0)
 BRUSH = QBrush(QColor(64, 64, 64, 128))
 DEFAULT_COLOR = QColor(76, 87, 91, 255)
+
 
 class MapGeometry(QGraphicsItem):
     polybuf: list[QPolygonF]
     rect: QRectF
     color: QColor
 
-    def __init__(self, verts: list[list[float]], indices: list[list[int]], color: QColor | None, z: float, parent: QGraphicsItem | None = ...):
+    def __init__(
+        self,
+        verts: list[list[float]],
+        indices: list[list[int]],
+        color: QColor | None,
+        z: float,
+        parent: QGraphicsItem | None = ...,
+    ):
         super().__init__(parent)
 
         if len(indices) % 3 != 0:
@@ -42,16 +51,16 @@ class MapGeometry(QGraphicsItem):
                 minimum.setY(v[1])
             if v[1] > maximum.y():
                 maximum.setY(v[1])
-        
+
         # generate the polys from the index buffer
         polys = []
-        for i in range(len(indices)//3):
+        for i in range(len(indices) // 3):
             poly = QPolygonF()
-            poly.append(vbuf[indices[i*3]])
-            poly.append(vbuf[indices[i*3+1]])
-            poly.append(vbuf[indices[i*3+2]])
+            poly.append(vbuf[indices[i * 3]])
+            poly.append(vbuf[indices[i * 3 + 1]])
+            poly.append(vbuf[indices[i * 3 + 2]])
             polys.append(poly)
-        
+
         self.polybuf = polys
         self.vertex_buffer = vbuf
 
@@ -59,15 +68,17 @@ class MapGeometry(QGraphicsItem):
         maximum = maximum + QPointF(0.1, 0.1)
         self.rect = QRectF(minimum, maximum)
 
-    def paint(self, painter: QPainter | None, option: QStyleOptionGraphicsItem | None, widget: QWidget | None = ...) -> None:
+    def paint(
+        self, painter: QPainter | None, option: QStyleOptionGraphicsItem | None, widget: QWidget | None = ...
+    ) -> None:
         if not get_config_data("paintGeometry"):
             return
-        
+
         painter.setPen(QPen(self.color))
         painter.setBrush(QBrush(self.color))
 
         for poly in self.polybuf:
             painter.drawPolygon(poly)
-    
+
     def boundingRect(self) -> QRectF:
         return self.rect
