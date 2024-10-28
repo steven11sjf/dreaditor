@@ -1,6 +1,4 @@
-import logging
-
-from PySide6.QtWidgets import QTreeWidget, QTreeWidgetItem, QWidget, QGraphicsPolygonItem
+from PySide6.QtWidgets import QTreeWidget, QTreeWidgetItem, QWidget
 from PySide6.QtCore import Qt, Slot
 
 from dreaditor.actor import Actor
@@ -18,6 +16,8 @@ class SubareasListTree(ActorListTree):
 
     def __init__(self, actor_data_tree: ActorDataTreeWidget, parent: QWidget | None = ...) -> None:
         super().__init__(actor_data_tree, "Setups", parent)
+        self.itemExpanded.connect(self.on_item_expanded)
+        self.itemCollapsed.connect(self.on_item_collapsed)
 
     def on_new_scenario_selected(self):
         super().on_new_scenario_selected()
@@ -26,7 +26,7 @@ class SubareasListTree(ActorListTree):
     def add_actor(self, setup_id: str, cc_name: str, actor_layer: str, actor: Actor, cc_item: CollisionCameraItem):
         # custom handling since the cc should be a SubareaTreeWidgetItem
         setup_widget = self.select_child_of_widget_item(self.root_node, setup_id, True)
-        
+
         cc_name = cc_item.name if cc_item else f"{cc_name} (No CC)"
         cc_widget = self.select_child_of_widget_item(setup_widget, cc_name, False)
         if not cc_widget:
@@ -41,9 +41,14 @@ class SubareasListTree(ActorListTree):
         actor.add_entity_list_item(actor_item)
         return actor_item
 
-    @Slot(QTreeWidgetItem, int)
-    def onItemChanged(self, item: QTreeWidgetItem, col):
-        super().onItemChanged(item, col)
+    @Slot(QTreeWidgetItem)
+    def on_item_expanded(self, item: QTreeWidgetItem):
         if isinstance(item, SubareaTreeWidgetItem):
             if item.collision_camera_item:
-                item.collision_camera_item.is_active = (item.checkState(0) == Qt.CheckState.Checked)
+                item.collision_camera_item.request_enable()
+
+    @Slot(QTreeWidgetItem)
+    def on_item_collapsed(self, item: QTreeWidgetItem):
+        if isinstance(item, SubareaTreeWidgetItem):
+            if item.collision_camera_item:
+                item.collision_camera_item.request_disable()

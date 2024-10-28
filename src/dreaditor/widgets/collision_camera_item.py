@@ -9,15 +9,15 @@ COLLISION_CAMERA_COLOR = QColor(255, 200, 255, 255)
 class CollisionCameraItem(QGraphicsItem):
     name: str
     polys: list[QPolygonF]
-    is_active: bool
     bounding_rect: QRectF
+    num_active_cameras: int
 
     def __init__(self, cc: str):
         super().__init__(None)
         self.name = cc.name
         self.polys = []
-        self.is_active = False
         self.bounding_rect = QRectF()
+        self.num_active_cameras = 0
 
         pos = QPointF(cc.data.position[0], -cc.data.position[1])
         for p in cc.data.polys:
@@ -26,7 +26,7 @@ class CollisionCameraItem(QGraphicsItem):
             self.bounding_rect = self.bounding_rect.united(poly.boundingRect())
     
     def paint(self, painter: QPainter, option: QStyleOptionGraphicsItem, widget: QWidget | None = ...) -> None:
-        if self.is_active or get_config_data("paintCollisionCameras"):
+        if self.num_active_cameras > 0 or get_config_data("paintCollisionCameras"):
             painter.setPen(QPen(COLLISION_CAMERA_COLOR, 20))
             font = QFont()
             font.setPointSize(100)
@@ -41,3 +41,13 @@ class CollisionCameraItem(QGraphicsItem):
         
     def boundingRect(self) -> QRectF:
         return self.bounding_rect
+
+    def request_enable(self):
+        self.num_active_cameras += 1
+        if self.num_active_cameras == 1:
+            self.update()
+    
+    def request_disable(self):
+        self.num_active_cameras -= 1
+        if self.num_active_cameras == 0:
+            self.update()
