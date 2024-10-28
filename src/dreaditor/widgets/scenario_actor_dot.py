@@ -7,7 +7,7 @@ from dreaditor.painters.custom_painters import custom_painters
 
 
 COLOR_ENTITY = QColor(0, 255, 0, 128)
-COLOR_SOUND = QColor(143, 0, 255, 128)
+COLOR_SOUND = QColor(0, 255, 255, 128)
 COLOR_LIGHT = QColor(255, 215, 0, 128)
 COLOR_UNDEFINED = QColor(0, 0, 0, 255)
 

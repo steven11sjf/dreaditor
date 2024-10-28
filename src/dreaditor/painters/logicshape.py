@@ -1,3 +1,4 @@
+import logging
 from math import sin, cos, radians
 
 from PySide6.QtGui import QPainter, QColor, QPen, QBrush, QPolygonF
@@ -6,7 +7,7 @@ from PySide6.QtCore import QRectF, QPointF
 
 from dreaditor.actor import Actor
 
-
+LOGGER = logging.getLogger(__name__)
 def paint_logicshape(actor: Actor, painter: QPainter | None, option: QStyleOptionGraphicsItem | None, widget: QWidget | None) -> QRectF:
     rect = QRectF()
 
@@ -68,6 +69,6 @@ def paint_logicshape(actor: Actor, painter: QPainter | None, option: QStyleOptio
             painter.drawPolygon(poly)
         
     else:
-        print(f"Poly with type {ls_type} detected! {actor.ref.layer}/{actor.ref.sublayer}/{actor.ref.name}")
+        LOGGER.warning(f"Poly with type {ls_type} detected! {actor.ref.layer}/{actor.ref.sublayer}/{actor.ref.name}")
 
     return rect
