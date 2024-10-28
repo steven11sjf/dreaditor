@@ -109,13 +109,16 @@ class DreaditorWindow(QMainWindow):
         self.actor_list_dock.setWidget(self.entity_list_tree)
 
         # create subareas dock
-        self.subareas_dock = QDockWidget("Collision Cameras")
+        self.subareas_dock = QDockWidget("Subareas")
         self.subareas_dock.setFeatures(QDockWidget.DockWidgetFeature.NoDockWidgetFeatures)
         self.subareas_dock.setMinimumWidth(MINIMUM_DOCK_WIDTH)
         self.tabifyDockWidget(self.actor_list_dock, self.subareas_dock)
 
         self.subareas_list_tree = SubareasListTree(self.actor_data_tree, None)
         self.subareas_dock.setWidget(self.subareas_list_tree)
+
+        # ensure actors dock is the default left-side dock
+        self.actor_list_dock.raise_()
 
         # create central dock
         self.central_dock = QDockWidget("Area Map")
