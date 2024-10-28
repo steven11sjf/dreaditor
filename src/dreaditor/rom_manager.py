@@ -1,27 +1,28 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING
 
 import logging
 from pathlib import Path
+from typing import TYPE_CHECKING
 
-from PySide6.QtCore import Qt
 from mercury_engine_data_structures.file_tree_editor import FileTreeEditor
 from mercury_engine_data_structures.formats.bmmap import Bmmap
-from mercury_engine_data_structures.formats.bmscc import Bmscc
 from mercury_engine_data_structures.formats.bmsad import Bmsad
-from mercury_engine_data_structures.formats.brfld import Brfld, ActorLayer
+from mercury_engine_data_structures.formats.bmscc import Bmscc
+from mercury_engine_data_structures.formats.brfld import ActorLayer, Brfld
 from mercury_engine_data_structures.formats.brsa import Brsa
 from mercury_engine_data_structures.game_check import Game
 from mercury_engine_data_structures.romfs import ExtractedRomFs
+from PySide6.QtCore import Qt
 
 from dreaditor.actor import Actor
 from dreaditor.actor_reference import ActorRef
-from dreaditor.constants import Scenario
 from dreaditor.config import get_config_data, set_config_data
-from dreaditor.widgets.collision_camera_item import CollisionCameraItem
 
 if TYPE_CHECKING:
+    from dreaditor.constants import Scenario
     from dreaditor.main_window import DreaditorWindow
+    from dreaditor.widgets.collision_camera_item import CollisionCameraItem
+
 
 class RomManager:
     main_window: DreaditorWindow
@@ -41,14 +42,14 @@ class RomManager:
         self.logger.info("Path loaded from config: %s", self.path)
         self.actors = []
         self.select_rom(self.path)
-    
+
     def select_rom(self, path: str):
         self.path = path
         try:
             self.editor = FileTreeEditor(ExtractedRomFs(Path(path)), target_game=Game.DREAD)
             set_config_data("romfs_dir", path)
             self.logger.info(f"Selected RomFS at {path} with version {self.editor.version}")
-        except:
+        except ValueError:
             self.editor = None
             self.path = None
             self.logger.warning("RomFS is not valid! path=%s", path)
@@ -57,12 +58,12 @@ class RomManager:
         if self.editor is None:
             if self.path is None:
                 return False
-            
+
             self.select_rom(self.path)
             return self.assert_rom_selected()
 
         return True
-    
+
     def open_scenario(self, scenario: Scenario):
         if not self.assert_rom_selected():
             self.logger.warning("No ROM selected!")
@@ -87,22 +88,28 @@ class RomManager:
 
         # for _, geo in self.bmmap.raw.Root.mapHeatRoomGeos.items():
         #     self.main_window.scenario_viewer.addMapGeo(geo.aVertex, geo.aIndex, QColor(255, 0, 0, 128), -900)
-        
+
         # for _, geo in self.bmmap.raw.Root.mapEmmyRoomGeos.items():
         #     self.main_window.scenario_viewer.addMapGeo(geo.aVertex, geo.aIndex, QColor(0, 255, 0, 128), -900)
-        
+
         # for _, outgeo in self.bmmap.raw.Root.mapOccluderGeos.items():
         #     print(type(outgeo))
         #     for _, geo in outgeo.items():
         #         self.main_window.scenario_viewer.addMapGeo(geo.aVertex, geo.aIndex, QColor(255, 255, 255, 128), -800)
-        
+
         for layerName, layer in self.brfld.raw.Root.pScenario.items():
             if layerName in ["sLevelID", "sScenarioID", "vLayerFiles"]:
                 continue
 
             for sublayerName, sublayer in layer.dctSublayers.items():
                 for actorName, actorData in sublayer.dctActors.items():
-                    actor = Actor(ActorRef(self.scenario, layerName, sublayerName, actorName), actorData, self.editor, self.main_window.actor_data_tree, self.main_window.scenario_viewer)
+                    actor = Actor(
+                        ActorRef(self.scenario, layerName, sublayerName, actorName),
+                        actorData,
+                        self.editor,
+                        self.main_window.actor_data_tree,
+                        self.main_window.scenario_viewer,
+                    )
                     self.actors.append(actor)
                     self.main_window.entity_list_tree.add_actor(actor)
                     self.main_window.scenario_viewer.add_actor(actor)
@@ -131,30 +138,30 @@ class RomManager:
                         for actor_link in ag:
                             actor_link_parts = actor_link.split(":")
                             self.main_window.subareas_list_tree.add_actor(
-                                setup_id, 
+                                setup_id,
                                 subarea_id,
                                 actor_group_name,
-                                self.get_actor_from_ref(ActorRef(scenario, actor_link_parts[2], actor_link_parts[4], actor_link_parts[6])),
-                                ccs.get(subarea_id, None)
+                                self.get_actor_from_ref(
+                                    ActorRef(scenario, actor_link_parts[2], actor_link_parts[4], actor_link_parts[6])
+                                ),
+                                ccs.get(subarea_id, None),
                             )
                     except KeyError:
                         self.logger.info("Missing actor group: %s", actor_group_name)
                         continue
         self.main_window.subareas_list_tree.root_node.setCheckState(0, Qt.CheckState.Checked)
 
-        
-    
     def get_actor_from_ref(self, ref: ActorRef) -> Actor | None:
         actors = [actor for actor in self.actors if actor.ref == ref]
 
         if len(actors) != 1:
             self.logger.warning("Actor not retrieved! Found %i matching actors", len(actors))
             return None
-        
+
         return actors[0]
-    
+
     def get_actor_def(self, adef: str) -> Bmsad:
         if adef.startswith("actordef:"):
             adef = adef[9:]
-        
+
         return self.editor.get_parsed_asset(adef, type_hint=Bmsad)

@@ -14,7 +14,8 @@ authors = [
 dependencies = [
   "mercury-engine-data-structures>=0.33.0",
   "PyQt5>=5.15.10",
-  "importlib_metadata>=7.0.2"
+  "importlib_metadata>=7.0.2",
+  "pre-commit>=4.0.1",
 ]
 requires-python = ">= 3.11"
 description = "A PyQt5-based Metroid Dread data visualizer"

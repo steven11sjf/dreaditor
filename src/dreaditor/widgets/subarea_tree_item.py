@@ -1,9 +1,12 @@
-import logging
+from __future__ import annotations
 
-from PySide6.QtWidgets import QTreeWidgetItem, QGraphicsPolygonItem
-from PySide6.QtGui import QPen, QColor
+from typing import TYPE_CHECKING
 
-from dreaditor.widgets.collision_camera_item import CollisionCameraItem
+from PySide6.QtWidgets import QTreeWidgetItem
+
+if TYPE_CHECKING:
+    from dreaditor.widgets.collision_camera_item import CollisionCameraItem
+
 
 class SubareaTreeWidgetItem(QTreeWidgetItem):
     collision_camera_item: CollisionCameraItem | None
@@ -11,4 +14,3 @@ class SubareaTreeWidgetItem(QTreeWidgetItem):
     def __init__(self, cci: CollisionCameraItem | None, name: str, parent: QTreeWidgetItem | None = ...) -> None:
         super().__init__(parent, [name])
         self.collision_camera_item = cci
-        

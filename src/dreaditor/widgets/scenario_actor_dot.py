@@ -1,10 +1,18 @@
-from PySide6.QtWidgets import QGraphicsEllipseItem, QGraphicsItem, QGraphicsSceneHoverEvent, QGraphicsSceneMouseEvent, QStyleOptionGraphicsItem, QWidget
+from __future__ import annotations
+
 from PySide6.QtCore import QRectF, Qt
 from PySide6.QtGui import QColor, QPainter, QPen
+from PySide6.QtWidgets import (
+    QGraphicsEllipseItem,
+    QGraphicsItem,
+    QGraphicsSceneHoverEvent,
+    QGraphicsSceneMouseEvent,
+    QStyleOptionGraphicsItem,
+    QWidget,
+)
 
 from dreaditor.actor import Actor, ActorSelectionState
 from dreaditor.painters.custom_painters import custom_painters
-
 
 COLOR_ENTITY = QColor(0, 255, 0, 128)
 COLOR_SOUND = QColor(0, 255, 255, 128)
@@ -15,6 +23,7 @@ OUTLINE_SELECTED = QColor(255, 0, 0, 255)
 OUTLINE_HOVERED = QColor(255, 255, 255, 255)
 OUTLINE_UNSELECTED = QColor(0, 0, 0, 0)
 OUTLINE_WIDTH = 25
+
 
 class ScenarioActorDot(QGraphicsEllipseItem):
     actor: Actor
@@ -43,7 +52,7 @@ class ScenarioActorDot(QGraphicsEllipseItem):
         self.bounding_rect = actor.actor_rect
         self.actor = actor
         self.setAcceptHoverEvents(True)
-    
+
     def hoverEnterEvent(self, event: QGraphicsSceneHoverEvent | None) -> None:
         self.setToolTip(f"{self.actor.ref.layer}/{self.actor.ref.sublayer}/{self.actor.ref.name}")
 
@@ -54,28 +63,30 @@ class ScenarioActorDot(QGraphicsEllipseItem):
             event.ignore()
         else:
             return super().mousePressEvent(event)
-        
+
     def mouseDoubleClickEvent(self, event: QGraphicsSceneMouseEvent | None) -> None:
         self.actor.OnSelected()
         event.ignore()
-    
-    def paint(self, painter: QPainter | None, option: QStyleOptionGraphicsItem | None, widget: QWidget | None = ...) -> None:
+
+    def paint(
+        self, painter: QPainter | None, option: QStyleOptionGraphicsItem | None, widget: QWidget | None = ...
+    ) -> None:
         if not self.actor.isChecked:
             return
-        
+
         brect = custom_painters(self.actor, painter, option, widget)
 
         painter.setBrush(self.base_color)
         pen = QPen(OUTLINE_SELECTED if self.actor.isSelected else OUTLINE_UNSELECTED)
         pen.setWidthF(OUTLINE_WIDTH)
         painter.setPen(pen)
-        
+
         painter.drawEllipse(self.actor.actor_rect)
 
         brect = brect.united(self.bounding_rect)
         if brect != self.bounding_rect:
             self.prepareGeometryChange()
             self.bounding_rect = brect
-    
+
     def boundingRect(self) -> QRectF:
         return self.bounding_rect
