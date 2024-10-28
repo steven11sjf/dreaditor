@@ -118,5 +118,5 @@ class ActorDataTreeWidget(QTreeWidget):
                     self.logger.info("Opening actor from link: %s/%s/%s", elements[2], elements[4], elements[6])
                     # select actor
                     ref = ActorRef(self.rom_manager.scenario, elements[2], elements[4], elements[6])
-                    actor = self.rom_manager.GetActorFromRef(ref)
+                    actor = self.rom_manager.get_actor_from_ref(ref)
                     actor.OnSelected(ActorSelectionState.Selected)

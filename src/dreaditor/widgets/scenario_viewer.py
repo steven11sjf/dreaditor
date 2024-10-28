@@ -7,6 +7,7 @@ from PySide6.QtGui import QBrush, QColor, QPen, QWheelEvent
 from dreaditor import get_data_path
 from dreaditor.actor import Actor
 from dreaditor.constants import Scenario
+from dreaditor.widgets.collision_camera_item import CollisionCameraItem
 from dreaditor.widgets.scenario_actor_dot import ScenarioActorDot
 from dreaditor.widgets.scenario_scene import ScenarioScene
 from dreaditor.widgets.map_geometry import MapGeometry
@@ -19,6 +20,7 @@ BORDER_PADDING=3000.0
 BACKGROUND = QColor(16, 31, 54, 255)
 PEN = QPen(QColor(255, 255, 255, 255))
 BRUSH = QBrush(QColor(0, 0, 0, 0))
+COLLISION_CAM_COLOR = QColor(255, 200, 255, 255)
 
 class ScenarioViewer(QGraphicsView):
     rom_manager: RomManager
@@ -36,18 +38,23 @@ class ScenarioViewer(QGraphicsView):
         self.setBackgroundBrush(BACKGROUND)
         self.setViewportUpdateMode(self.ViewportUpdateMode.FullViewportUpdate)
 
-    def OnNewScenarioSelected(self, scenario: Scenario):
+    def on_new_scenario_selected(self, scenario: Scenario):
         self.scene().clear()
 
-    def addActor(self, actor: Actor):
+    def add_actor(self, actor: Actor):
         actor.actor_dot = ScenarioActorDot(actor, None)
         self.scene().addItem(actor.actor_dot)
 
-    def addMapGeo(self, verts: list[list[float]], indices: list[int], color: QColor | None, z: float):
+    def add_map_geo(self, verts: list[list[float]], indices: list[int], color: QColor | None, z: float):
         geo = MapGeometry(verts, indices, color, z, None)
         self.scene().addItem(geo)
     
-    def setBounds(self, min: list[float], max: list[float]):
+    def add_collision_camera(self, cc: dict) -> CollisionCameraItem:
+        res = CollisionCameraItem(cc)
+        self.scene().addItem(res)
+        return res
+    
+    def set_bounds(self, min: list[float], max: list[float]):
         self.scene().addRect(QRectF(QPointF(min[0]-BORDER_PADDING, min[1]-BORDER_PADDING), QPointF(max[0]+BORDER_PADDING, max[1]+BORDER_PADDING)), PEN, BRUSH)
 
     def wheelEvent(self, event: QWheelEvent | None) -> None:

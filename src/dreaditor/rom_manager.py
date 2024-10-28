@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING
 import logging
 from pathlib import Path
 
+from PySide6.QtCore import Qt
 from mercury_engine_data_structures.file_tree_editor import FileTreeEditor
 from mercury_engine_data_structures.formats.bmmap import Bmmap
 from mercury_engine_data_structures.formats.bmscc import Bmscc
@@ -17,6 +18,7 @@ from dreaditor.actor import Actor
 from dreaditor.actor_reference import ActorRef
 from dreaditor.constants import Scenario
 from dreaditor.config import get_config_data, set_config_data
+from dreaditor.widgets.collision_camera_item import CollisionCameraItem
 
 if TYPE_CHECKING:
     from dreaditor.main_window import DreaditorWindow
@@ -38,9 +40,9 @@ class RomManager:
         self.path = get_config_data("romfs_dir")
         self.logger.info("Path loaded from config: %s", self.path)
         self.actors = []
-        self.SelectRom(self.path)
+        self.select_rom(self.path)
     
-    def SelectRom(self, path: str):
+    def select_rom(self, path: str):
         self.path = path
         try:
             self.editor = FileTreeEditor(ExtractedRomFs(Path(path)), target_game=Game.DREAD)
@@ -51,18 +53,18 @@ class RomManager:
             self.path = None
             self.logger.warning("RomFS is not valid! path=%s", path)
 
-    def AssertRomSelected(self) -> bool:
+    def assert_rom_selected(self) -> bool:
         if self.editor is None:
             if self.path is None:
                 return False
             
-            self.SelectRom(self.path)
-            return self.AssertRomSelected()
+            self.select_rom(self.path)
+            return self.assert_rom_selected()
 
         return True
     
-    def OpenScenario(self, scenario: Scenario):
-        if not self.AssertRomSelected():
+    def open_scenario(self, scenario: Scenario):
+        if not self.assert_rom_selected():
             self.logger.warning("No ROM selected!")
             return
 
@@ -76,9 +78,9 @@ class RomManager:
 
         # draw map
         gridDef = self.bmmap.raw.Root.gridDef
-        self.main_window.scenario_viewer.setBounds(gridDef.vGridMin, gridDef.vGridMax)
+        self.main_window.scenario_viewer.set_bounds(gridDef.vGridMin, gridDef.vGridMax)
         for geo in self.bmmap.raw.Root.aNavmeshGeos:
-            self.main_window.scenario_viewer.addMapGeo(geo.aVertex, geo.aIndex, None, -1000)
+            self.main_window.scenario_viewer.add_map_geo(geo.aVertex, geo.aIndex, None, -1000)
 
         # TODO fix the bug where these disappear
         # might be fixed when i make it only use the outline and draw borders correctly?
@@ -102,11 +104,13 @@ class RomManager:
                 for actorName, actorData in sublayer.dctActors.items():
                     actor = Actor(ActorRef(self.scenario, layerName, sublayerName, actorName), actorData, self.editor, self.main_window.actor_data_tree, self.main_window.scenario_viewer)
                     self.actors.append(actor)
-                    self.main_window.entity_list_tree.addBrfldItem(actor)
-                    self.main_window.scenario_viewer.addActor(actor)
+                    self.main_window.entity_list_tree.add_actor(actor)
+                    self.main_window.scenario_viewer.add_actor(actor)
 
         self.bmscc = self.editor.get_parsed_asset(scenario.scenario_file("bmscc"), type_hint=Bmscc)
-        ccs: dict[str, dict] = {cc.name: cc for cc in self.bmscc.raw.layers[0].entries}
+        ccs: dict[str, CollisionCameraItem] = {}
+        for cc in self.bmscc.raw.layers[0].entries:
+            ccs[cc.name] = self.main_window.scenario_viewer.add_collision_camera(cc)
 
         self.brsa = self.editor.get_parsed_asset(scenario.scenario_file("brsa"), type_hint=Brsa)
         for setup in self.brsa.raw.Root.pSubareaManager.vSubareaSetups:
@@ -126,19 +130,21 @@ class RomManager:
                         ag = self.brfld.get_actor_group(actor_group_name, actor_layer)
                         for actor_link in ag:
                             actor_link_parts = actor_link.split(":")
-                            self.main_window.subareas_list_tree.add_item(
+                            self.main_window.subareas_list_tree.add_actor(
                                 setup_id, 
-                                subarea_id, 
+                                subarea_id,
                                 actor_group_name,
-                                self.GetActorFromRef(ActorRef(scenario, actor_link_parts[2], actor_link_parts[4], actor_link_parts[6]))
+                                self.get_actor_from_ref(ActorRef(scenario, actor_link_parts[2], actor_link_parts[4], actor_link_parts[6])),
+                                ccs.get(subarea_id, None)
                             )
                     except KeyError:
                         self.logger.info("Missing actor group: %s", actor_group_name)
                         continue
+        self.main_window.subareas_list_tree.root_node.setCheckState(0, Qt.CheckState.Checked)
 
         
     
-    def GetActorFromRef(self, ref: ActorRef) -> Actor | None:
+    def get_actor_from_ref(self, ref: ActorRef) -> Actor | None:
         actors = [actor for actor in self.actors if actor.ref == ref]
 
         if len(actors) != 1:
@@ -147,12 +153,8 @@ class RomManager:
         
         return actors[0]
     
-    def GetActorDef(self, adef: str) -> Bmsad:
+    def get_actor_def(self, adef: str) -> Bmsad:
         if adef.startswith("actordef:"):
             adef = adef[9:]
         
         return self.editor.get_parsed_asset(adef, type_hint=Bmsad)
-    
-    def SelectNode(self, layer: str, sublayer: str, sName: str):
-        self.logger.info("SelectNode called: (%s, %s, %s)", layer, sublayer, sName)
-        self.main_window.SelectNode(layer, sublayer, sName)

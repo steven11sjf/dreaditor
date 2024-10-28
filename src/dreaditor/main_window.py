@@ -34,7 +34,7 @@ class DreaditorWindow(QMainWindow):
 
     rom_manager: RomManager
 
-    def  __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         super(DreaditorWindow, self).__init__(*args, *kwargs)
         self.logger = logging.getLogger(type(self).__name__)
         load_config()
@@ -50,21 +50,21 @@ class DreaditorWindow(QMainWindow):
 
         fileMenu = QMenu("&File", self)
         menuBar.addMenu(fileMenu)
-        fileMenu.addAction("Select RomFS").triggered.connect(self.selectRomFS)
-        fileMenu.addAction("Open Log Folder").triggered.connect(self.openLogFolder)
+        fileMenu.addAction("Select RomFS").triggered.connect(self.select_rom_fs)
+        fileMenu.addAction("Open Log Folder").triggered.connect(self.open_log_folder)
 
         self.edit_menu = QMenu("&Load Scenario", self)
         menuBar.addMenu(self.edit_menu)
 
         # helper to add edit menu functions and link the scenario enums
-        def addEditMenuAction(region: Scenario, actions: dict[Scenario, QAction]):
+        def _add_edit_menu_action(region: Scenario, actions: dict[Scenario, QAction]):
             action = QAction(region.long_name)
-            action.triggered.connect(lambda: self.openRegion(region))
+            action.triggered.connect(lambda: self.open_region(region))
             actions[region] = action
         
         self.scenario_actions = {}
         for s in Scenario:
-            addEditMenuAction(s, self.scenario_actions)
+            _add_edit_menu_action(s, self.scenario_actions)
             
 
 
@@ -72,22 +72,23 @@ class DreaditorWindow(QMainWindow):
         menuBar.addMenu(paintMenu)
 
         # helper to add paint menu functions and link the config values
-        def addPaintMenuAction(text: str, config_name: str):
+        def _add_paint_menu_action(text: str, config_name: str):
             action = QAction(text, paintMenu)
             action.setCheckable(True)
             action.setChecked(get_config_data(config_name))
-            action.triggered.connect(lambda checked: self.onPaintOptionTriggered(checked, config_name))
+            action.triggered.connect(lambda checked: self.on_paint_option_triggered(checked, config_name))
             paintMenu.addAction(action)
                 
-        addPaintMenuAction("Static Geometry", "paintGeometry")
-        addPaintMenuAction("Doors", "paintDoors")
-        addPaintMenuAction("Collision", "paintCollision")
-        addPaintMenuAction("Breakable Tiles", "paintBreakables")
-        addPaintMenuAction("Logic Shapes", "paintLogicShapes")
-        addPaintMenuAction("Logic Paths", "paintLogicPaths")
-        addPaintMenuAction("World Graph", "paintWorldGraph")
+        _add_paint_menu_action("Static Geometry", "paintGeometry")
+        _add_paint_menu_action("Collision Cameras", "paintCollisionCameras")
+        _add_paint_menu_action("Doors", "paintDoors")
+        _add_paint_menu_action("Collision", "paintCollision")
+        _add_paint_menu_action("Breakable Tiles", "paintBreakables")
+        _add_paint_menu_action("Logic Shapes", "paintLogicShapes")
+        _add_paint_menu_action("Logic Paths", "paintLogicPaths")
+        _add_paint_menu_action("World Graph", "paintWorldGraph")
 
-        self.updateMenuForRomVersion()
+        self.update_menu_for_rom_versions()
 
         # create actor details dock
         self.data_dock = QDockWidget("Data")
@@ -125,17 +126,17 @@ class DreaditorWindow(QMainWindow):
         self.central_dock.setWidget(self.scenario_viewer)
         self.setCentralWidget(self.central_dock)
 
-    def onPaintOptionTriggered(self, checked: bool, config_name: str):
+    def on_paint_option_triggered(self, checked: bool, config_name: str):
         set_config_data(config_name, checked)
         self.scenario_viewer.viewport().update()
     
-    def selectRomFS(self):
+    def select_rom_fs(self):
         filename = QFileDialog.getExistingDirectory(self, "Open RomFS Folder")
         self.logger.info("Selected Directory: %s", filename)
-        self.rom_manager.SelectRom(filename)
-        self.updateMenuForRomVersion()
+        self.rom_manager.select_rom(filename)
+        self.update_menu_for_rom_versions()
     
-    def updateMenuForRomVersion(self):
+    def update_menu_for_rom_versions(self):
         for act in self.edit_menu.actions():
             self.edit_menu.removeAction(act)
         
@@ -145,21 +146,17 @@ class DreaditorWindow(QMainWindow):
                 if ver in scenario.game_versions:
                     self.edit_menu.addAction(action)
 
-    def openLogFolder(self):
+    def open_log_folder(self):
         self.logger.info("Opening logging dir")
         os.startfile(get_log_folder())
 
-    def openRegion(self, scenario: Scenario):
+    def open_region(self, scenario: Scenario):
         self.setWindowTitle(f"Dreaditor v{VERSION_STRING}: {scenario.long_name}")
-        self.entity_list_tree.OnNewScenarioSelected()
+        self.entity_list_tree.on_new_scenario_selected()
         self.subareas_list_tree.on_new_scenario_selected()
-        self.scenario_viewer.OnNewScenarioSelected(scenario)
+        self.scenario_viewer.on_new_scenario_selected(scenario)
         self.actor_data_tree.clear()
-        self.rom_manager.OpenScenario(scenario)
-
-    def SelectNode(self, layer: str, sublayer: str, sName: str):
-        self.entity_list_tree.SelectBrfldNode(layer, sublayer, sName)
-        self.actor_data_tree.LoadActor(ActorRef(self.rom_manager.scenario, layer, sublayer, sName))
+        self.rom_manager.open_scenario(scenario)
 
     def closeEvent(self, a0: QCloseEvent | None) -> None:
         save_config()

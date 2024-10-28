@@ -1,74 +1,49 @@
 import logging
 
-from PySide6.QtWidgets import QTreeWidget, QTreeWidgetItem, QWidget
+from PySide6.QtWidgets import QTreeWidget, QTreeWidgetItem, QWidget, QGraphicsPolygonItem
 from PySide6.QtCore import Qt, Slot
 
 from dreaditor.actor import Actor
+from dreaditor.widgets.collision_camera_item import CollisionCameraItem
 from dreaditor.widgets.actor_data_tree import ActorDataTreeWidget
+from dreaditor.widgets.actor_list_tree import ActorListTree
 from dreaditor.widgets.entity_list_tree_item import EntityListTreeWidgetItem
+from dreaditor.widgets.subarea_tree_item import SubareaTreeWidgetItem
 
 
-class SubareasListTree(QTreeWidget):
-    base_node: QTreeWidgetItem
+class SubareasListTree(ActorListTree):
     cameras: list[QTreeWidget]
     actors: list[QTreeWidgetItem]
     actor_data_tree: ActorDataTreeWidget
 
     def __init__(self, actor_data_tree: ActorDataTreeWidget, parent: QWidget | None = ...) -> None:
-        super().__init__(parent)
-        self.logger = logging.getLogger(type(self).__name__)
-
-        self.setHeaderHidden(True)
-        self.setSortingEnabled(True)
-        self.sortByColumn(0, Qt.SortOrder.AscendingOrder)
-        self.itemChanged.connect(self.onItemChanged)
-        self.itemDoubleClicked.connect(self.onItemDoubleClicked)
-
-        self.actor_data_tree = actor_data_tree
-        self.cameras = []
-        self.actors = []
-
-        self.base_node = QTreeWidgetItem(["Collision Cameras"])
-        self.base_node.setFlags(self.base_node.flags() | Qt.ItemFlag.ItemIsAutoTristate | Qt.ItemFlag.ItemIsUserCheckable)
-        self.base_node.setCheckState(0, Qt.CheckState.Unchecked)
-
-        self.addTopLevelItem(self.base_node)
-        self.base_node.setExpanded(True)
+        super().__init__(actor_data_tree, "Setups", parent)
 
     def on_new_scenario_selected(self):
-        self.actors = []
+        super().on_new_scenario_selected()
         self.cameras = []
-        self.base_node.takeChildren()
 
-    def add_item(self, setup_id: str, cc_name: str, actor_layer: str, actor: Actor):
-        setup_widget = self.selectChildOfWidgetItem(self.base_node, setup_id, True)
-        cc_widget = self.selectChildOfWidgetItem(setup_widget, cc_name, True)
-        actor_layer_item = self.selectChildOfWidgetItem(cc_widget, actor_layer, True)
+    def add_actor(self, setup_id: str, cc_name: str, actor_layer: str, actor: Actor, cc_item: CollisionCameraItem):
+        # custom handling since the cc should be a SubareaTreeWidgetItem
+        setup_widget = self.select_child_of_widget_item(self.root_node, setup_id, True)
+        
+        cc_name = cc_item.name if cc_item else f"{cc_name} (No CC)"
+        cc_widget = self.select_child_of_widget_item(setup_widget, cc_name, False)
+        if not cc_widget:
+            cc_widget = SubareaTreeWidgetItem(cc_item, cc_name, setup_widget)
+            cc_widget.setFlags(cc_widget.flags() | Qt.ItemFlag.ItemIsAutoTristate | Qt.ItemFlag.ItemIsUserCheckable)
+            setup_widget.addChild(cc_widget)
 
+        actor_layer_widget = self.select_child_of_widget_item(cc_widget, actor_layer, True)
+        
         actor_item = EntityListTreeWidgetItem(actor)
-        actor_layer_item.addChild(actor_item)
+        actor_layer_widget.addChild(actor_item)
         actor.add_entity_list_item(actor_item)
+        return actor_item
 
-    def selectChildOfWidgetItem(self, item: QTreeWidgetItem, text: str, create_if_nonexistent = False) -> QTreeWidgetItem | None:
-        
-        for childIdx in range(item.childCount()):
-            if item.child(childIdx).text(0) == text:
-                return item.child(childIdx)
-        
-        if create_if_nonexistent:
-            newChild = QTreeWidgetItem(item, [text])
-            newChild.setFlags(newChild.flags() | Qt.ItemFlag.ItemIsAutoTristate | Qt.ItemFlag.ItemIsUserCheckable)
-            newChild.setCheckState(0, Qt.CheckState.Unchecked)
-            return newChild
-        
-        return None
-    
     @Slot(QTreeWidgetItem, int)
     def onItemChanged(self, item: QTreeWidgetItem, col):
-        if isinstance(item, EntityListTreeWidgetItem):
-            item.actor.UpdateCheckState(item.checkState(0) == Qt.CheckState.Checked)
-
-    @Slot(QTreeWidgetItem, int)
-    def onItemDoubleClicked(self, item:  QTreeWidgetItem, col):
-        if isinstance(item,  EntityListTreeWidgetItem):
-            item.actor.OnSelected()
+        super().onItemChanged(item, col)
+        if isinstance(item, SubareaTreeWidgetItem):
+            if item.collision_camera_item:
+                item.collision_camera_item.is_active = (item.checkState(0) == Qt.CheckState.Checked)

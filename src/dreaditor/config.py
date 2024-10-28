@@ -5,6 +5,7 @@ CONFIG_FILE_NAME = "config.json"
 DEFAULT_CONFIG = {
     "romfs_dir": None,
     "paintGeometry": True,
+    "paintCollisionCameras": True,
     "paintDoors": True,
     "paintCollision": True,
     "paintBreakables": True,
