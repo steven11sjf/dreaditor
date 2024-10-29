@@ -66,10 +66,6 @@ class Actor:
             level_data.vPos[0] - DOT_SIZE, -level_data.vPos[1] - DOT_SIZE, 2 * DOT_SIZE, 2 * DOT_SIZE
         )
 
-        # avoid crashing on the one broken actordef
-        if bmsadLink == "actors/props/pf_mushr_fr/charclasses/pf_mushr_fr.bmsad":
-            return
-
         self.bmsad = editor.get_parsed_asset(bmsadLink, type_hint=Bmsad)
         if "COLLISION" in self.bmsad.components:
             coll: str = self.bmsad.components["COLLISION"].dependencies.file

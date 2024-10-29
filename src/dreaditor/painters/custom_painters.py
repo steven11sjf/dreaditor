@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 from PySide6.QtCore import QRectF
 
 from dreaditor.config import get_config_data
-from dreaditor.painters.collision import paint_all_collision, paint_door, paint_tiles
+from dreaditor.painters.collision import paint_all_collision, paint_bmsad_functions, paint_door, paint_tiles
 from dreaditor.painters.logicpath import paint_logicpath
 from dreaditor.painters.logicshape import paint_logicshape
 from dreaditor.painters.worldgraph import paint_worldgraph
@@ -32,6 +32,10 @@ def custom_painters(
     elif actor.bmscc:
         if actor.isSelected or get_config_data("paintCollision"):
             rect = rect.united(paint_all_collision(actor, painter, option, widget))
+
+    if actor.bmsad and actor.bmsad.components.get("COLLISION"):
+        if actor.isSelected or get_config_data("paintCollision"):
+            rect = rect.united(paint_bmsad_functions(actor, painter, option, widget))
 
     if actor.getComponent("CBreakableTileGroupComponent"):
         if actor.isSelected or get_config_data("paintBreakables"):

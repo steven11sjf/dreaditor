@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from typing import TYPE_CHECKING
 
 from PySide6.QtCore import QPointF, QRectF
@@ -13,13 +14,14 @@ if TYPE_CHECKING:
 COLLIDER_PEN_UNSELECTED = QPen(QColor(255, 0, 0, 128), 15)
 COLLIDER_PEN_SELECTED = QPen(QColor(255, 0, 255, 128), 20)
 COLLIDER_BRUSH = QBrush(QColor(0, 0, 0, 0))
+LOGGER = logging.getLogger(__name__)
 
 
 def aabox2d_to_rect(aabox2d: dict, vPos: QPointF) -> QRectF:
-    halfw = aabox2d.data.size[0] / 2
-    halfh = aabox2d.data.size[1] / 2
-    p1 = vPos + QPointF(aabox2d.data.position[0] - halfw, halfh - aabox2d.data.position[1])
-    p2 = vPos + QPointF(aabox2d.data.position[0] + halfw, -halfh - aabox2d.data.position[1])
+    halfw = aabox2d["data"]["size"][0] / 2
+    halfh = aabox2d["data"]["size"][1] / 2
+    p1 = vPos + QPointF(aabox2d["data"]["position"][0] - halfw, halfh - aabox2d["data"]["position"][1])
+    p2 = vPos + QPointF(aabox2d["data"]["position"][0] + halfw, -halfh - aabox2d["data"]["position"][1])
     return QRectF(p1, p2)
 
 
@@ -72,6 +74,42 @@ def paint_all_collision(
 
                 painter.drawEllipse(circle_rect)
                 rect = rect.united(circle_rect)
+
+    return rect
+
+
+def paint_bmsad_functions(
+    actor: Actor, painter: QPainter | None, option: QStyleOptionGraphicsItem | None, widget: QWidget | None
+):
+    rect = QRectF()
+
+    painter.setBrush(COLLIDER_BRUSH)
+    painter.setPen(COLLIDER_PEN_SELECTED if actor.isSelected else COLLIDER_PEN_UNSELECTED)
+    vPos = QPointF(actor.level_data.vPos[0], -actor.level_data.vPos[1])
+    for func in actor.bmsad.components["COLLISION"].functions:
+        if func.name == "CreateCollider":
+            if func.get_param(5) == "AABOX2D":
+                entry = {
+                    "data": {
+                        "position": [
+                            func.get_param(6),
+                            func.get_param(7),
+                            func.get_param(8),
+                        ],
+                        "size": [func.get_param(9), func.get_param(10)],
+                    }
+                }
+                r = aabox2d_to_rect(entry, vPos)
+                painter.drawRect(r)
+                rect = rect.united(r)
+            else:
+                LOGGER.warning(
+                    "Unknown collider type in BMSAD for actor (%s/%s/%s): %s",
+                    actor.ref.layer,
+                    actor.ref.sublayer,
+                    actor.ref.name,
+                    func.get_param(5),
+                )
 
     return rect
 
