@@ -40,8 +40,10 @@ def paint_logicshape(
 
             if poly.bClosed:
                 qpoly.append(qpoly.first())
+                painter.drawPolygon(qpoly)
+            else:
+                painter.drawPolyline(qpoly)
 
-            painter.drawPolygon(qpoly)
             rect = rect.united(qpoly.boundingRect())
     elif ls_type == "game::logic::collision::CAABoxShape2D":
         p1 = vPos + QPointF(logicshape_comp.pLogicShape.v2Min[0], -logicshape_comp.pLogicShape.v2Min[1])
