@@ -1,92 +1,104 @@
 from __future__ import annotations
 
-import logging
 from math import cos, radians, sin
 from typing import TYPE_CHECKING
 
 from PySide6.QtCore import QPointF, QRectF
-from PySide6.QtGui import QBrush, QColor, QPainter, QPen, QPolygonF
+from PySide6.QtGui import QPainter, QPolygonF
+
+from dreaditor.painters.base_painter import BasePainterWidget
 
 if TYPE_CHECKING:
     from PySide6.QtWidgets import QStyleOptionGraphicsItem, QWidget
 
-    from dreaditor.actor import Actor
 
-LOGGER = logging.getLogger(__name__)
+class LogicShapeWidget(BasePainterWidget):
+    config_val = "paintLogicShapes"
 
+    def _paint(self, painter: QPainter, option: QStyleOptionGraphicsItem, widget: QWidget | None = ...) -> None:
+        rect = QRectF(self.actor.actor_dot.bounding_rect)
 
-def paint_logicshape(
-    actor: Actor, painter: QPainter | None, option: QStyleOptionGraphicsItem | None, widget: QWidget | None
-) -> QRectF:
-    rect = QRectF()
+        logicshape_comp = self.actor.getComponent("CLogicShapeComponent")
+        if not logicshape_comp.pLogicShape:
+            if rect != self.bounding_rect:
+                self.prepareGeometryChange()
+                self.bounding_rect = rect
 
-    painter.setBrush(QBrush(QColor(255, 255, 64, 8)))
-    painter.setPen(QPen(QColor(255, 255, 64, 128), 15))
-    logicshape_comp = actor.getComponent("CLogicShapeComponent")
-    if logicshape_comp.pLogicShape is None:
-        return rect
+            return
 
-    vPos = QPointF(
-        actor.level_data.vPos[0] + logicshape_comp.pLogicShape.vPos[0],
-        -actor.level_data.vPos[1] - logicshape_comp.pLogicShape.vPos[1],
-    )
-    ls_type = logicshape_comp.pLogicShape["@type"]
+        vPos = QPointF(
+            self.actor.level_data.vPos[0] + logicshape_comp.pLogicShape.vPos[0],
+            -self.actor.level_data.vPos[1] - logicshape_comp.pLogicShape.vPos[1],
+        )
+        ls_type = logicshape_comp.pLogicShape["@type"]
 
-    if ls_type == "game::logic::collision::CPolygonCollectionShape":
-        for poly in logicshape_comp.pLogicShape.oPolyCollection.vPolys:
-            qpoly = QPolygonF()
-            for segment in poly.oSegmentData:
-                qpoly.append(vPos + QPointF(segment.vPos[0], -segment.vPos[1]))
+        if ls_type == "game::logic::collision::CPolygonCollectionShape":
+            rect = QRectF()
+            for poly in logicshape_comp.pLogicShape.oPolyCollection.vPolys:
+                qpoly = QPolygonF()
+                for segment in poly.oSegmentData:
+                    qpoly.append(vPos + QPointF(segment.vPos[0], -segment.vPos[1]))
 
-            if poly.bClosed:
-                qpoly.append(qpoly.first())
-                painter.drawPolygon(qpoly)
-            else:
-                painter.drawPolyline(qpoly)
+                if poly.bClosed:
+                    qpoly.append(qpoly.first())
+                    painter.drawPolygon(qpoly)
+                else:
+                    painter.drawPolyline(qpoly)
 
-            rect = rect.united(qpoly.boundingRect())
-    elif ls_type == "game::logic::collision::CAABoxShape2D":
-        p1 = vPos + QPointF(logicshape_comp.pLogicShape.v2Min[0], -logicshape_comp.pLogicShape.v2Min[1])
-        p2 = vPos + QPointF(logicshape_comp.pLogicShape.v2Max[0], -logicshape_comp.pLogicShape.v2Max[1])
-        rect = QRectF(p1, p2)
-        painter.drawRect(rect)
-    elif ls_type == "game::logic::collision::COBoxShape2D":
-        halfExtent = QPointF(logicshape_comp.pLogicShape.v2Extent[0] / 2, -logicshape_comp.pLogicShape.v2Extent[1] / 2)
-        rads = radians(logicshape_comp.pLogicShape.fDegrees)
+                rect = rect.united(qpoly.boundingRect())
 
-        # do a simple rect draw if aligned
-        if rads == 0:
-            rect = QRectF(vPos - halfExtent, vPos + halfExtent)
+        elif ls_type == "game::logic::collision::CAABoxShape2D":
+            p1 = vPos + QPointF(logicshape_comp.pLogicShape.v2Min[0], -logicshape_comp.pLogicShape.v2Min[1])
+            p2 = vPos + QPointF(logicshape_comp.pLogicShape.v2Max[0], -logicshape_comp.pLogicShape.v2Max[1])
+            rect = QRectF(p1, p2)
             painter.drawRect(rect)
-        else:
-            # cache some values for rotations
-            s = sin(rads)
-            c = cos(rads)
-            xs = s * halfExtent.x()
-            xc = c * halfExtent.x()
-            ys = s * halfExtent.y()
-            yc = c * halfExtent.y()
-
-            actor.logger.warning(
-                "A COBoxShape2D actually has a rotation value! Make sure %s/%s/%s is rendered correctly",
-                actor.ref.layer,
-                actor.ref.sublayer,
-                actor.ref.name,
+        elif ls_type == "game::logic::collision::COBoxShape2D":
+            halfExtent = QPointF(
+                logicshape_comp.pLogicShape.v2Extent[0] / 2, -logicshape_comp.pLogicShape.v2Extent[1] / 2
             )
-            poly = QPolygonF()
-            topleft = QPointF(-xc + ys, -xs - yc)
-            topright = QPointF(-xc - ys, -xs + yc)
-            bottomright = QPointF(xc - ys, xs + yc)
-            bottomleft = QPointF(xc + ys, xs - yc)
-            poly.append(topleft)
-            poly.append(topright)
-            poly.append(bottomright)
-            poly.append(bottomleft)
-            poly.append(topleft)
-            rect = poly.boundingRect()
-            painter.drawPolygon(poly)
+            rads = radians(logicshape_comp.pLogicShape.fDegrees)
 
-    else:
-        LOGGER.warning(f"Poly with type {ls_type} detected! {actor.ref.layer}/{actor.ref.sublayer}/{actor.ref.name}")
+            # do a simple rect draw if aligned
+            if rads == 0:
+                rect = QRectF(vPos - halfExtent, vPos + halfExtent)
+                painter.drawRect(rect)
+            else:
+                # cache some values for rotations
+                s = sin(rads)
+                c = cos(rads)
+                xs = s * halfExtent.x()
+                xc = c * halfExtent.x()
+                ys = s * halfExtent.y()
+                yc = c * halfExtent.y()
 
-    return rect
+                self.actor.logger.warning(
+                    "A COBoxShape2D actually has a rotation value! Make sure %s/%s/%s is rendered correctly",
+                    self.actor.ref.layer,
+                    self.actor.ref.sublayer,
+                    self.actor.ref.name,
+                )
+                poly = QPolygonF()
+                topleft = QPointF(-xc + ys, -xs - yc)
+                topright = QPointF(-xc - ys, -xs + yc)
+                bottomright = QPointF(xc - ys, xs + yc)
+                bottomleft = QPointF(xc + ys, xs - yc)
+                poly.append(topleft)
+                poly.append(topright)
+                poly.append(bottomright)
+                poly.append(bottomleft)
+                poly.append(topleft)
+                rect = poly.boundingRect()
+                painter.drawPolygon(poly)
+
+        else:
+            self.actor.logger.warning(
+                "Poly with type %s detected! %s/%s/%s",
+                ls_type,
+                self.actor.ref.layer,
+                self.actor.ref.sublayer,
+                self.actor.ref.name,
+            )
+
+        if rect != self.bounding_rect:
+            self.prepareGeometryChange()
+            self.bounding_rect = rect
