@@ -70,6 +70,14 @@ class ActorListTree(QTreeWidget):
 
         return None
 
+    def item_depth(self, item: QTreeWidgetItem):
+        depth = 0
+        curr_item = item.parent()  # so root is 0 depth
+        while curr_item:
+            depth += 1
+            curr_item = curr_item.parent()
+        return depth
+
     @Slot(QTreeWidgetItem, int)
     def onItemChanged(self, item: QTreeWidgetItem, col):
         if isinstance(item, EntityListTreeWidgetItem):
