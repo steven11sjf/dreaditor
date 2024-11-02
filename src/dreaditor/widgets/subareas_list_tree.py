@@ -58,3 +58,8 @@ class SubareasListTree(ActorListTree):
         if isinstance(item, SubareaTreeWidgetItem):
             if item.collision_camera_item:
                 item.collision_camera_item.request_disable()
+
+        # un-expand all items below cc level (root node, setup id, cameras)
+        if self.item_depth(item) < 2:
+            for i in range(item.childCount()):
+                item.child(i).setExpanded(False)
