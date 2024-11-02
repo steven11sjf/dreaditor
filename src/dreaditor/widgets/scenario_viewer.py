@@ -48,6 +48,7 @@ class ScenarioViewer(QGraphicsView):
     def add_actor(self, actor: Actor):
         actor.actor_dot = ScenarioActorDot(actor, None)
         self.scene().addItem(actor.actor_dot)
+        actor.actor_dot.assign_painter_widgets()
 
     def add_map_geo(self, verts: list[list[float]], indices: list[int], color: QColor | None, z: float):
         geo = MapGeometry(verts, indices, color, z, None)
