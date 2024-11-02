@@ -45,9 +45,6 @@ class CollisionDataFileWidget(BasePainterWidget):
     config_val = "paintCollision"
 
     def _paint(self, painter: QPainter, option: QStyleOptionGraphicsItem, widget: QWidget | None = ...) -> None:
-        painter.setBrush(self.brush)
-        painter.setPen(self.pen)
-
         rect = QRectF()
         vPos = QPointF(self.actor.level_data.vPos[0], -self.actor.level_data.vPos[1])
 
@@ -83,9 +80,6 @@ class BmsadCollisionWidget(BasePainterWidget):
     config_val = "paintCollision"
 
     def _paint(self, painter: QPainter, option: QStyleOptionGraphicsItem, widget: QWidget | None = ...) -> None:
-        painter.setBrush(self.brush)
-        painter.setPen(self.pen)
-
         rect = QRectF()
         vPos = QPointF(self.actor.level_data.vPos[0], -self.actor.level_data.vPos[1])
 
@@ -121,6 +115,7 @@ class BmsadCollisionWidget(BasePainterWidget):
 
 class DoorPainterWidget(BasePainterWidget):
     DOOR_PEN = QPen(QColor(0, 0, 0, 255), 10)
+    ADDITIONAL_COLLIDER_PEN = QPen(QColor(64, 0, 255, 32), 10)
     config_val = "paintDoors"
 
     def _paint(self, painter: QPainter, option: QStyleOptionGraphicsItem, widget: QWidget | None = ...) -> None:
@@ -141,12 +136,51 @@ class DoorPainterWidget(BasePainterWidget):
             sensor_aabox = [entry for entry in col_layer.entries if entry.name == "sensor"][0]
             sensor_rect = aabox2d_to_rect(sensor_aabox, vPos)
             painter.setBrush(QBrush(QColor(0, 0, 0, 0)))
-            painter.setPen(QPen(QColor(64, 0, 255, 32), 10))
+            painter.setPen(self.ADDITIONAL_COLLIDER_PEN)
             painter.drawRect(sensor_rect)
 
         if rect != self.bounding_rect:
             self.prepareGeometryChange()
             self.bounding_rect = rect
+
+
+class ShieldPainterWidget(BasePainterWidget):
+    SHIELD_COLORS = {
+        "doorwidebeam": QColor(255, 255, 0, 128),
+        "door_shield_plasma": QColor(137, 243, 54, 128),
+        "doorwavebeam": QColor(255, 0, 255, 128),
+        "shield_diffusion": QColor(255, 0, 0, 128),
+        "doorshieldmissile": QColor(255, 128, 0, 128),
+        "doorshieldsupermissile": QColor(0, 255, 0, 128),
+        "shield_icemissile": QColor(0, 255, 255, 128),
+        "shield_storm_mssl": QColor(255, 128, 0, 128),
+        "shield_bombs_regular__": QColor(255, 0, 150, 128),
+        "shield_cross_bomb_____": QColor(255, 0, 125, 128),
+        "doorshieldpowerbomb___": QColor(255, 96, 0, 128),
+    }
+
+    config_val = "paintDoors"
+
+    def _paint(self, painter: QPainter, option: QStyleOptionGraphicsItem, widget: QWidget | None = ...) -> None:
+        vPos = QPointF(self.actor.level_data.vPos[0], -self.actor.level_data.vPos[1])
+        side = "collision_L" if self.actor.level_data.vAng[1] < 0 else "collision_R"
+        shield_type: str = self.actor.level_data.oActorDefLink.split("/")[2]
+
+        col_layer = [layer for layer in self.actor.bmscc.raw.layers if layer.name == "collision_layer"][0]
+        aabox = [entry for entry in col_layer.entries if entry.name == side][0]
+        polys = polycollection_to_polys(aabox, vPos)
+
+        painter.setPen(QPen(self.SHIELD_COLORS[shield_type], 10))
+        painter.setBrush(QBrush(self.SHIELD_COLORS[shield_type]))
+        painter.brush().color().setAlpha(48)
+        bbox = QRectF()
+        for p in polys:
+            painter.drawPolygon(p)
+            bbox = bbox.united(p.boundingRect())
+
+        if polys != self.bounding_rect:
+            self.prepareGeometryChange()
+            self.bounding_rect = bbox
 
 
 class TilegroupPainterWidget(BasePainterWidget):

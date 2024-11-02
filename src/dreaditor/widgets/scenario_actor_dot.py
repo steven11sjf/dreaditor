@@ -17,6 +17,7 @@ from dreaditor.painters.collision import (
     BmsadCollisionWidget,
     CollisionDataFileWidget,
     DoorPainterWidget,
+    ShieldPainterWidget,
     TilegroupPainterWidget,
 )
 from dreaditor.painters.logicpath import LogicPathWidget
@@ -76,11 +77,19 @@ class ScenarioActorDot(QGraphicsEllipseItem):
             or self.actor.getComponent("CDoorCentralUnitLifeComponent")
         ):
             self.painter_widgets.append(DoorPainterWidget(self.actor, self))
-        elif self.actor.bmscc:
-            self.painter_widgets.append(CollisionDataFileWidget(self.actor, self))
 
-        if self.actor.bmsad and self.actor.bmsad.components.get("COLLISION"):
-            self.painter_widgets.append(BmsadCollisionWidget(self.actor, self))
+        elif self.actor.getComponent("CDoorShieldLifeComponent") or self.actor.getComponent("CBeamDoorLifeComponent"):
+            self.painter_widgets.append(ShieldPainterWidget(self.actor, self))
+        else:
+            if self.actor.bmscc:
+                self.painter_widgets.append(CollisionDataFileWidget(self.actor, self))
+
+            if (
+                self.actor.bmsad
+                and self.actor.bmsad.components.get("COLLISION")
+                and self.actor.bmsad.components.get("COLLISION").functions
+            ):
+                self.painter_widgets.append(BmsadCollisionWidget(self.actor, self))
 
         if self.actor.getComponent("CBreakableTileGroupComponent"):
             self.painter_widgets.append(TilegroupPainterWidget(self.actor, self))
