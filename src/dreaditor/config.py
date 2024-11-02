@@ -15,6 +15,7 @@ DEFAULT_CONFIG = {
     "paintLogicShapes": False,
     "paintLogicPaths": False,
     "paintWorldGraph": False,
+    "paintPositionalSound": False,
 }
 
 config_path = dreaditor.get_appdata_folder().joinpath(CONFIG_FILE_NAME)
