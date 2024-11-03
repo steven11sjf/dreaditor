@@ -8,7 +8,7 @@ from PySide6.QtGui import QAction, QCloseEvent
 from PySide6.QtWidgets import QDockWidget, QFileDialog, QMainWindow, QMenu, QTabWidget
 
 from dreaditor import VERSION_STRING, get_log_folder, get_stylesheet
-from dreaditor.config import get_config_data, save_config, set_config_data
+from dreaditor.config import CurrentConfiguration
 from dreaditor.constants import Scenario
 from dreaditor.rom_manager import RomManager
 from dreaditor.widgets.actor_data_tree import ActorDataTreeWidget
@@ -72,7 +72,7 @@ class DreaditorWindow(QMainWindow):
         def _add_paint_menu_action(text: str, config_name: str):
             action = QAction(text, paintMenu)
             action.setCheckable(True)
-            action.setChecked(get_config_data(config_name))
+            action.setChecked(CurrentConfiguration[config_name])
             action.triggered.connect(lambda checked: self.on_paint_option_triggered(checked, config_name))
             paintMenu.addAction(action)
 
@@ -128,7 +128,7 @@ class DreaditorWindow(QMainWindow):
         self.setCentralWidget(self.central_dock)
 
     def on_paint_option_triggered(self, checked: bool, config_name: str):
-        set_config_data(config_name, checked)
+        CurrentConfiguration[config_name] = checked
         self.scenario_viewer.viewport().update()
 
     def select_rom_fs(self):
@@ -160,4 +160,4 @@ class DreaditorWindow(QMainWindow):
         self.rom_manager.open_scenario(scenario)
 
     def closeEvent(self, a0: QCloseEvent | None) -> None:
-        save_config()
+        CurrentConfiguration._save()

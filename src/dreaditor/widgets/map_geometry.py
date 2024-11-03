@@ -6,7 +6,7 @@ from PySide6.QtCore import QPointF, QRectF
 from PySide6.QtGui import QBrush, QColor, QPainter, QPen, QPolygonF
 from PySide6.QtWidgets import QGraphicsItem, QStyleOptionGraphicsItem, QWidget
 
-from dreaditor.config import get_config_data
+from dreaditor.config import CurrentConfiguration
 
 PEN = QPen(QColor(0, 0, 0, 255), 5.0)
 BRUSH = QBrush(QColor(64, 64, 64, 128))
@@ -71,7 +71,7 @@ class MapGeometry(QGraphicsItem):
     def paint(
         self, painter: QPainter | None, option: QStyleOptionGraphicsItem | None, widget: QWidget | None = ...
     ) -> None:
-        if not get_config_data("paintGeometry"):
+        if not CurrentConfiguration["paintGeometry"]:
             return
 
         painter.setPen(QPen(self.color))
