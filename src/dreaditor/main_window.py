@@ -84,6 +84,7 @@ class DreaditorWindow(QMainWindow):
         _add_paint_menu_action("Logic Shapes", "paintLogicShapes")
         _add_paint_menu_action("Logic Paths", "paintLogicPaths")
         _add_paint_menu_action("World Graph", "paintWorldGraph")
+        _add_paint_menu_action("Positional Sounds", "paintPositionalSound")
 
         self.update_menu_for_rom_versions()
 

@@ -22,6 +22,7 @@ from dreaditor.painters.collision import (
 )
 from dreaditor.painters.logicpath import LogicPathWidget
 from dreaditor.painters.logicshape import LogicShapeWidget
+from dreaditor.painters.positionalsound import PositionalSoundWidget
 from dreaditor.painters.worldgraph import WorldGraphWidget
 
 COLOR_ENTITY = QColor(0, 255, 0, 128)
@@ -102,6 +103,9 @@ class ScenarioActorDot(QGraphicsEllipseItem):
 
         if self.actor.getComponent("CWorldGraph"):
             self.painter_widgets.append(WorldGraphWidget(self.actor, self))
+
+        if self.actor.ref.layer == "rSoundsLayer" and self.actor.getComponent("CPositionalSoundComponent"):
+            self.painter_widgets.append(PositionalSoundWidget(self.actor, self))
 
     def hoverEnterEvent(self, event: QGraphicsSceneHoverEvent | None) -> None:
         self.setToolTip(f"{self.actor.ref.layer}/{self.actor.ref.sublayer}/{self.actor.ref.name}")
