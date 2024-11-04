@@ -115,6 +115,9 @@ class Actor:
         self.actor_dot.update()
 
     def UpdateCheckState(self, state: bool):
+        if self.isSelected and not state:
+            self.OnSelected(ActorSelectionState.Unselected)
+
         self.isChecked = state
         self.actor_dot.update()
         for eli in self.entity_list_items:
