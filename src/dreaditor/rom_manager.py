@@ -44,6 +44,9 @@ class RomManager:
         self.select_rom(self.path)
 
     def select_rom(self, path: str):
+        if path is None:
+            return
+
         self.path = path
         try:
             self.editor = FileTreeEditor(ExtractedRomFs(Path(path)), target_game=Game.DREAD)

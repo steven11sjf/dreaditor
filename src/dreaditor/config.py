@@ -48,7 +48,7 @@ class Config(dict):
         self.logger.info("Saving config to %s", self.config_path.as_posix())
 
         if not self.config_path.exists():
-            self.logger.log("Creating config file at %s", self.config_path.as_posix())
+            self.logger.info("Creating config file at %s", self.config_path.as_posix())
             self.config_path.parent.mkdir(parents=True, exist_ok=True)
 
         self.config_path.write_text(json.dumps(self, indent=4))
