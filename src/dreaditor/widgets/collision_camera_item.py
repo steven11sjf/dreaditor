@@ -4,7 +4,7 @@ from PySide6.QtCore import QPointF, QRectF
 from PySide6.QtGui import QColor, QFont, QFontMetricsF, QPainter, QPen, QPolygonF
 from PySide6.QtWidgets import QGraphicsItem, QStyleOptionGraphicsItem, QWidget
 
-from dreaditor.config import get_config_data
+from dreaditor.config import CurrentConfiguration
 
 COLLISION_CAMERA_COLOR = QColor(255, 200, 255, 255)
 
@@ -29,7 +29,7 @@ class CollisionCameraItem(QGraphicsItem):
             self.bounding_rect = self.bounding_rect.united(poly.boundingRect())
 
     def paint(self, painter: QPainter, option: QStyleOptionGraphicsItem, widget: QWidget | None = ...) -> None:
-        if self.num_active_cameras > 0 or get_config_data("paintCollisionCameras"):
+        if self.num_active_cameras > 0 or CurrentConfiguration["paintCollisionCameras"]:
             painter.setPen(QPen(COLLISION_CAMERA_COLOR, 20))
             font = QFont()
             font.setPointSize(100)

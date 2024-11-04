@@ -1,8 +1,13 @@
 from __future__ import annotations
 
 import json
+import logging
+from typing import TYPE_CHECKING
 
 import dreaditor
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 CONFIG_FILE_NAME = "config.json"
 DEFAULT_CONFIG = {
@@ -18,26 +23,40 @@ DEFAULT_CONFIG = {
     "paintPositionalSound": False,
 }
 
-config_path = dreaditor.get_appdata_folder().joinpath(CONFIG_FILE_NAME)
-if not config_path.exists():
-    config_path.write_text(json.dumps(DEFAULT_CONFIG), "ascii")
 
-_config = json.loads(config_path.read_text())
+class Config(dict):
+    def __init__(self, config_path: Path):
+        super().__init__()
+        self.logger = logging.getLogger(type(self).__name__)
+        self.config_path = config_path
+
+        # load defaults
+        self.update(DEFAULT_CONFIG)
+
+        # load from file
+        self._load()
+
+    def _load(self):
+        self.logger.info("Loading config from %s", self.config_path.as_posix())
+
+        if self.config_path.exists():
+            self.update(json.loads(self.config_path.read_text()))
+        else:
+            self.logger.warning("Config path (%s) does not exist!", self.config_path.as_posix())
+
+    def _save(self):
+        self.logger.info("Saving config to %s", self.config_path.as_posix())
+
+        if not self.config_path.exists():
+            self.logger.log("Creating config file at %s", self.config_path.as_posix())
+            self.config_path.parent.mkdir(parents=True, exist_ok=True)
+
+        self.config_path.write_text(json.dumps(self, indent=4))
+
+    def __setitem__(self, key, value) -> None:
+        super().__setitem__(key, value)
+        self.logger.info("Set %s to %s", key, value)
+        self._save()
 
 
-def save_config():
-    filepath = dreaditor.get_appdata_folder().joinpath(CONFIG_FILE_NAME)
-
-    filepath.write_text(json.dumps(_config, indent=4))
-
-
-def get_config_data(key: str):
-    result = _config.get(key, None)
-    if result is None:
-        _config[key] = DEFAULT_CONFIG[key]
-        result = DEFAULT_CONFIG[key]
-    return result
-
-
-def set_config_data(key: str, val):
-    _config[key] = val
+CurrentConfiguration = Config(dreaditor.get_appdata_folder().joinpath(CONFIG_FILE_NAME))

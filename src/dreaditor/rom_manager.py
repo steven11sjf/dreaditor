@@ -16,7 +16,7 @@ from PySide6.QtCore import Qt
 
 from dreaditor.actor import Actor
 from dreaditor.actor_reference import ActorRef
-from dreaditor.config import get_config_data, set_config_data
+from dreaditor.config import CurrentConfiguration
 
 if TYPE_CHECKING:
     from dreaditor.constants import Scenario
@@ -38,7 +38,7 @@ class RomManager:
         self.logger = logging.getLogger(type(self).__name__)
         self.main_window = main_window
         self.editor = None
-        self.path = get_config_data("romfs_dir")
+        self.path = CurrentConfiguration["romfs_dir"]
         self.logger.info("Path loaded from config: %s", self.path)
         self.actors = []
         self.select_rom(self.path)
@@ -47,8 +47,8 @@ class RomManager:
         self.path = path
         try:
             self.editor = FileTreeEditor(ExtractedRomFs(Path(path)), target_game=Game.DREAD)
-            set_config_data("romfs_dir", path)
             self.logger.info(f"Selected RomFS at {path} with version {self.editor.version}")
+            CurrentConfiguration["romfs_dir"] = path
         except ValueError:
             self.editor = None
             self.path = None

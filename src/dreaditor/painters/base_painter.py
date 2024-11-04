@@ -7,7 +7,7 @@ from PySide6.QtGui import QBrush, QColor, QPen
 from PySide6.QtWidgets import QGraphicsItem, QGraphicsSceneHoverEvent
 
 from dreaditor.actor import ActorSelectionState
-from dreaditor.config import get_config_data
+from dreaditor.config import CurrentConfiguration
 
 if TYPE_CHECKING:
     from PySide6.QtGui import QPainter
@@ -37,7 +37,7 @@ class BasePainterWidget(QGraphicsItem):
         if not self.actor.isChecked:
             return False
 
-        if self.actor.isSelected or get_config_data(self.config_val):
+        if self.actor.isSelected or CurrentConfiguration[self.config_val]:
             return True
 
         return False
