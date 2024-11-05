@@ -1,12 +1,13 @@
 from __future__ import annotations
 
-from PySide6.QtCore import QPointF, QRectF
+from PySide6.QtCore import QPointF, QRectF, Qt
 from PySide6.QtGui import QColor, QFont, QFontMetricsF, QPainter, QPen, QPolygonF
 from PySide6.QtWidgets import QGraphicsItem, QStyleOptionGraphicsItem, QWidget
 
 from dreaditor.config import CurrentConfiguration
 
 COLLISION_CAMERA_COLOR = QColor(255, 200, 255, 255)
+PADDING_PCT = 0.95
 
 
 class CollisionCameraItem(QGraphicsItem):
@@ -49,6 +50,10 @@ class CollisionCameraItem(QGraphicsItem):
         self.num_active_cameras += 1
         if self.num_active_cameras == 1:
             self.update()
+
+        scene_view = self.scene().views()[0]
+        scene_view.fitInView(self, Qt.AspectRatioMode.KeepAspectRatio)
+        scene_view.scale(PADDING_PCT, PADDING_PCT)
 
     def request_disable(self):
         self.num_active_cameras -= 1

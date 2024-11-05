@@ -41,6 +41,7 @@ class ScenarioViewer(QGraphicsView):
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.setBackgroundBrush(BACKGROUND)
         self.setViewportUpdateMode(self.ViewportUpdateMode.FullViewportUpdate)
+        self.setTransformationAnchor(self.ViewportAnchor.AnchorUnderMouse)
 
     def on_new_scenario_selected(self, scenario: Scenario):
         self.scene().clear()
@@ -70,13 +71,5 @@ class ScenarioViewer(QGraphicsView):
         )
 
     def wheelEvent(self, event: QWheelEvent | None) -> None:
-        oldPos = self.mapToScene(event.position().toPoint())
-
         zoomFactor = ZOOM_FACTOR if event.angleDelta().y() > 0 else 1 / ZOOM_FACTOR
-
         self.scale(zoomFactor, zoomFactor)
-
-        newPos = self.mapToScene(event.position().toPoint())
-
-        delta = newPos - oldPos
-        self.translate(delta.x(), delta.y())
