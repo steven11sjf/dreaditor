@@ -68,7 +68,8 @@ class BasePainterWidget(QGraphicsItem):
 
     def mouseDoubleClickEvent(self, event: QGraphicsSceneMouseEvent | None) -> None:
         if event.button() == Qt.MouseButton.LeftButton and self.is_visible():
-            self.actor.OnSelected()
+            if not self.actor.actor_rect.contains(event.scenePos()):
+                self.actor.OnSelected()
 
         event.ignore()
 
