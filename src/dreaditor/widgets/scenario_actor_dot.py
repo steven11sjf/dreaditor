@@ -33,7 +33,7 @@ COLOR_UNDEFINED = QColor(0, 0, 0, 255)
 OUTLINE_SELECTED = QColor(255, 0, 0, 255)
 OUTLINE_HOVERED = QColor(255, 255, 255, 255)
 OUTLINE_UNSELECTED = QColor(0, 0, 0, 0)
-OUTLINE_WIDTH = 25
+OUTLINE_WIDTH = 10
 
 
 class ScenarioActorDot(QGraphicsEllipseItem):
@@ -108,10 +108,16 @@ class ScenarioActorDot(QGraphicsEllipseItem):
             self.painter_widgets.append(PositionalSoundWidget(self.actor, self))
 
     def hoverEnterEvent(self, event: QGraphicsSceneHoverEvent | None) -> None:
+        self.actor.OnHovered(True)
         self.setToolTip(f"{self.actor.ref.layer}/{self.actor.ref.sublayer}/{self.actor.ref.name}")
+        self.update()
+
+    def hoverLeaveEvent(self, event: QGraphicsSceneHoverEvent) -> None:
+        self.actor.OnHovered(False)
+        self.update()
 
     def mousePressEvent(self, event: QGraphicsSceneMouseEvent | None) -> None:
-        if not self.actor.isChecked:
+        if not self.actor.is_checked:
             event.ignore()
             return
 
@@ -123,7 +129,7 @@ class ScenarioActorDot(QGraphicsEllipseItem):
             return super().mousePressEvent(event)
 
     def mouseDoubleClickEvent(self, event: QGraphicsSceneMouseEvent | None) -> None:
-        if event.button() == Qt.MouseButton.LeftButton and self.actor.isChecked:
+        if event.button() == Qt.MouseButton.LeftButton and self.actor.is_checked:
             self.actor.OnSelected()
 
         event.ignore()
@@ -131,11 +137,17 @@ class ScenarioActorDot(QGraphicsEllipseItem):
     def paint(
         self, painter: QPainter | None, option: QStyleOptionGraphicsItem | None, widget: QWidget | None = ...
     ) -> None:
-        if not self.actor.isChecked:
+        if not self.actor.is_checked:
             return
 
         painter.setBrush(self.base_color)
-        pen = QPen(OUTLINE_SELECTED if self.actor.isSelected else OUTLINE_UNSELECTED)
+        color = OUTLINE_UNSELECTED
+        if self.actor.is_hovered:
+            color = OUTLINE_HOVERED
+        if self.actor.is_selected:
+            color = OUTLINE_SELECTED
+        pen = QPen(color)
+
         pen.setWidthF(OUTLINE_WIDTH)
         painter.setPen(pen)
 

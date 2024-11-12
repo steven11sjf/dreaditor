@@ -24,3 +24,6 @@ class ActorRef:
             and self.sublayer == other.sublayer
             and self.name == other.name
         )
+
+    def __repr__(self) -> str:
+        return f"{self.scenario.name}/{self.layer}/{self.sublayer}/{self.name}"

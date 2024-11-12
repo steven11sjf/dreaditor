@@ -4,7 +4,7 @@ import logging
 from typing import TYPE_CHECKING
 
 from PySide6.QtCore import QPointF, QRectF
-from PySide6.QtGui import QBrush, QColor, QPainter, QPen, QPolygonF
+from PySide6.QtGui import QBrush, QColor, QPainter, QPainterPath, QPen, QPolygonF
 from PySide6.QtWidgets import QStyleOptionGraphicsItem, QWidget
 
 from dreaditor.painters.base_painter import BasePainterWidget
@@ -216,3 +216,18 @@ class TilegroupPainterWidget(BasePainterWidget):
         if rect != self.bounding_rect:
             self.prepareGeometryChange()
             self.bounding_rect = rect
+
+    def shape(self) -> QPainterPath:
+        res = QPainterPath()
+        vPos = QPointF(self.actor.level_data.vPos[0], -self.actor.level_data.vPos[1])
+        tile_comp = self.actor.getComponent("CBreakableTileGroupComponent")
+
+        for tile in tile_comp.aGridTiles:
+            res.addRect(
+                QRectF(
+                    vPos + QPointF(100.0 * tile.vGridCoords[0], -100.0 * (tile.vGridCoords[1] + 1)),
+                    vPos + QPointF(100.0 * (tile.vGridCoords[0] + 1), -100.0 * tile.vGridCoords[1]),
+                )
+            )
+
+        return res

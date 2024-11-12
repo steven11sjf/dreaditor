@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from PySide6.QtCore import QPointF, QRectF
-from PySide6.QtGui import QColor, QPainter, QRadialGradient
+from PySide6.QtGui import QColor, QPainter, QPainterPath, QRadialGradient
 
 from dreaditor.painters.base_painter import BasePainterWidget
 
@@ -38,3 +38,8 @@ class PositionalSoundWidget(BasePainterWidget):
         if self.bounding_rect != rect:
             self.prepareGeometryChange()
             self.bounding_rect = rect
+
+    def shape(self) -> QPainterPath:
+        res = QPainterPath()
+        res.addEllipse(self.bounding_rect)
+        return res
