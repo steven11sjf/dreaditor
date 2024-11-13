@@ -32,8 +32,15 @@ class ActorDataTreeWidget(QTreeWidget):
         if idx is not None:
             return
 
-        # load the level data from the brfld
         top_actor = ActorDataTreeItem(actor)
+        cc_data = QTreeWidgetItem(["Collision Cameras"])
+        for subarea_id, cc_names in actor.subarea_setups.items():
+            subarea_widget = QTreeWidgetItem([subarea_id])
+            subarea_widget.addChildren([QTreeWidgetItem(["", cc]) for cc in cc_names])
+            cc_data.addChild(subarea_widget)
+        top_actor.addChild(cc_data)
+
+        # load the level data from the brfld
         level_data = QTreeWidgetItem(["Level Data"])
         self.AddKeysToActor(level_data, actor.level_data)
         top_actor.addChild(level_data)
@@ -64,6 +71,7 @@ class ActorDataTreeWidget(QTreeWidget):
             bmscc_item = QTreeWidgetItem(["BMSCC"])
             self.AddKeysToActor(bmscc_item, actor.bmscc.raw)
             top_actor.addChild(bmscc_item)
+
         # add top actor, expand recursively but make the root item unexpanded
         self.addTopLevelItem(top_actor)
         self.expandRecursively(self.indexFromItem(top_actor))
@@ -139,3 +147,12 @@ class ActorDataTreeWidget(QTreeWidget):
                     ref = ActorRef(self.rom_manager.scenario, elements[2], elements[4], elements[6])
                     actor = self.rom_manager.get_actor_from_ref(ref)
                     actor.OnSelected(ActorSelectionState.Selected)
+            elif (
+                item.parent() is not None
+                and item.parent().parent() is not None
+                and item.parent().parent().text(0) == "Collision Cameras"
+            ):
+                setup_id = item.parent().text(0)
+                cc_id = item.text(1)
+
+                self.rom_manager.main_window.subareas_list_tree.select_camera(setup_id, cc_id)

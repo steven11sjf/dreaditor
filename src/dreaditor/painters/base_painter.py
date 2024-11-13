@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 
 from PySide6.QtCore import QRectF, Qt
 from PySide6.QtGui import QBrush, QColor, QPen
-from PySide6.QtWidgets import QGraphicsItem, QGraphicsSceneHoverEvent
+from PySide6.QtWidgets import QGraphicsItem
 
 from dreaditor.actor import ActorSelectionState
 from dreaditor.config import CurrentConfiguration
@@ -31,28 +31,30 @@ class BasePainterWidget(QGraphicsItem):
         brush_color.setAlpha(32)
         self.brush = QBrush(brush_color)
         self.pen = QPen(actor.actor_dot.base_color, 20)
-        self.setAcceptHoverEvents(True)
+        self.highlight_pen = QPen(QColor(255, 255, 255, 255), 20)
+
+        # TODO hover on these when visible to user
+        #      will likely have to un-child the painter widgets from actor dots,
+        #      or make them not QGraphicsItem and make the actor dots handle everything
+        self.setAcceptHoverEvents(False)
 
     def is_visible(self):
-        if not self.actor.isChecked:
+        if not self.actor.is_checked:
             return False
 
-        if self.actor.isSelected or CurrentConfiguration[self.config_val]:
+        if self.actor.is_selected or CurrentConfiguration[self.config_val]:
             return True
 
         return False
 
     def paint(self, painter: QPainter, option: QStyleOptionGraphicsItem, widget: QWidget | None = ...) -> None:
         if self.is_visible():
-            painter.setPen(self.pen)
+            painter.setPen(self.highlight_pen if self.actor.is_hovered else self.pen)
             painter.setBrush(self.brush)
             self._paint(painter, option, widget)
 
     def boundingRect(self) -> QRectF:
         return self.bounding_rect
-
-    def hoverEnterEvent(self, event: QGraphicsSceneHoverEvent) -> None:
-        self.setToolTip(f"{self.actor.ref.layer}/{self.actor.ref.sublayer}/{self.actor.ref.name}")
 
     def mousePressEvent(self, event: QGraphicsSceneMouseEvent | None) -> None:
         if not self.is_visible():

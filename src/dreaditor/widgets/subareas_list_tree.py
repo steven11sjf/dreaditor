@@ -44,8 +44,23 @@ class SubareasListTree(ActorListTree):
 
         actor_item = EntityListTreeWidgetItem(actor)
         actor_layer_widget.addChild(actor_item)
-        actor.add_entity_list_item(actor_item)
         return actor_item
+
+    def select_camera(self, setup_id: str, cc_name: str):
+        setup_widget = self.select_child_of_widget_item(self.root_node, setup_id)
+        if setup_widget is None:
+            raise ValueError(f"No setup id {setup_id}")
+        setup_widget.setExpanded(True)
+
+        cc_widget = self.select_child_of_widget_item(setup_widget, cc_name)
+        if cc_widget is None:
+            raise ValueError(f"No collision camera {cc_name} in setup id {setup_id}")
+        cc_widget.setExpanded(True)
+
+        if not isinstance(cc_widget, SubareaTreeWidgetItem):
+            raise ValueError(f"Widget for {setup_id}/{cc_name} is not a SubareaTreeWidgetItem")
+        cc_widget.setExpanded(True)
+        self.parentWidget().raise_()
 
     @Slot(QTreeWidgetItem)
     def on_item_expanded(self, item: QTreeWidgetItem):

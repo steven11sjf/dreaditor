@@ -140,13 +140,15 @@ class RomManager:
                         ag = self.brfld.get_actor_group(actor_group_name, actor_layer)
                         for actor_link in ag:
                             actor_link_parts = actor_link.split(":")
+                            actor = self.get_actor_from_ref(
+                                ActorRef(scenario, actor_link_parts[2], actor_link_parts[4], actor_link_parts[6])
+                            )
+                            actor.add_cc(setup_id, subarea_id)
                             self.main_window.subareas_list_tree.add_actor(
                                 setup_id,
                                 subarea_id,
                                 actor_group_name,
-                                self.get_actor_from_ref(
-                                    ActorRef(scenario, actor_link_parts[2], actor_link_parts[4], actor_link_parts[6])
-                                ),
+                                actor,
                                 ccs.get(subarea_id, None),
                             )
                     except KeyError:

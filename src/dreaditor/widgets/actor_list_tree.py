@@ -4,7 +4,7 @@ import logging
 from typing import TYPE_CHECKING
 
 from PySide6.QtCore import Qt, Slot
-from PySide6.QtWidgets import QTreeWidget, QTreeWidgetItem, QWidget
+from PySide6.QtWidgets import QAbstractItemView, QTreeWidget, QTreeWidgetItem, QWidget
 
 from dreaditor.widgets.entity_list_tree_item import EntityListTreeWidgetItem
 
@@ -25,6 +25,8 @@ class ActorListTree(QTreeWidget):
         self.setHeaderHidden(True)
         self.setSortingEnabled(True)
         self.sortByColumn(0, Qt.SortOrder.AscendingOrder)
+        self.setSelectionMode(QAbstractItemView.SelectionMode.NoSelection)
+        self.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.itemChanged.connect(self.onItemChanged)
         self.itemDoubleClicked.connect(self.onItemDoubleClicked)
         # TODO set hover state, or possibly single-click state
@@ -52,7 +54,6 @@ class ActorListTree(QTreeWidget):
 
         actor_item = EntityListTreeWidgetItem(actor)
         item.addChild(actor_item)
-        actor.add_entity_list_item(actor_item)
         return actor_item
 
     def select_child_of_widget_item(

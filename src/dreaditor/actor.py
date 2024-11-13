@@ -33,14 +33,16 @@ class Actor:
     level_data: dict
     bmsad: Bmsad | None = None
     bmscc: Bmscc | None = None
+    subarea_setups: dict[str, list[str]]
 
     entity_list_items: list[EntityListTreeWidgetItem]
     data_tree: ActorDataTreeWidget
     actor_dot: ScenarioActorDot | None
     actor_rect: QRectF
 
-    isChecked: bool = True
-    isSelected: bool = False
+    is_checked: bool = True
+    is_hovered: bool = False
+    is_selected: bool = False
 
     def __init__(
         self,
@@ -56,6 +58,7 @@ class Actor:
         self.ref = ref
         self.data_tree = data_tree
         self.scene_viewer = scene
+        self.subarea_setups = {}
 
         bmsadLink = level_data.oActorDefLink[9:]
 
@@ -74,6 +77,12 @@ class Actor:
             else:
                 self.logger.info("actor %s/%s/%s has unassigned collision file!", ref.layer, ref.sublayer, ref.name)
 
+    def add_cc(self, setup_id: str, cc_name: str):
+        if not self.subarea_setups.get(setup_id):
+            self.subarea_setups[setup_id] = []
+
+        self.subarea_setups[setup_id].append(cc_name)
+
     def getComponent(self, name_or_type: str) -> dict | None:
         for compName, comp in self.level_data.pComponents.items():
             if compName == name_or_type:
@@ -82,22 +91,19 @@ class Actor:
                 return comp
         return None
 
-    def add_entity_list_item(self, item: EntityListTreeWidgetItem):
-        self.entity_list_items.append(item)
-
-    def OnHovered(self):
+    def OnHovered(self, val: bool):
         for eli in self.entity_list_items:
-            pass  # set bg to light gray
+            eli.set_hovered(val)
 
-        # set actor_dot to be a large white oval
+        self.is_hovered = val
 
     def OnSelected(self, state: ActorSelectionState = ActorSelectionState.Toggle):
-        if state == ActorSelectionState.Selected or (state == ActorSelectionState.Toggle and not self.isSelected):
+        if state == ActorSelectionState.Selected or (state == ActorSelectionState.Toggle and not self.is_selected):
             # select
-            self.isSelected = True
+            self.is_selected = True
             for eli in self.entity_list_items:
                 eli.setCheckState(0, Qt.CheckState.Checked)
-                # TODO un-bold/un-italicize
+                eli.set_selected(True)
 
             # update scene to show change in selection
             self.actor_dot.scene().views()[0].centerOn(self.actor_dot)
@@ -106,19 +112,20 @@ class Actor:
             self.data_tree.LoadActor(self)
         else:
             # unselect
-            self.isSelected = False
+            self.is_selected = False
             for eli in self.entity_list_items:
-                pass  # TODO un-bold/un-italicize
+                eli.set_selected(False)
+
             self.data_tree.UnloadActor(self)
 
         # update scene to show change in selection
         self.actor_dot.update()
 
     def UpdateCheckState(self, state: bool):
-        if self.isSelected and not state:
+        if self.is_selected and not state:
             self.OnSelected(ActorSelectionState.Unselected)
 
-        self.isChecked = state
+        self.is_checked = state
         self.actor_dot.update()
         for eli in self.entity_list_items:
             eli.setCheckState(0, Qt.CheckState.Checked if state else Qt.CheckState.Unchecked)
