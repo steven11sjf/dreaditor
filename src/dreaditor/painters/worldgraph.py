@@ -7,6 +7,7 @@ from PySide6.QtCore import QPointF, QRectF
 from PySide6.QtGui import QColor, QFont, QPainter, QPen
 
 from dreaditor.painters.base_painter import BasePainterWidget
+from dreaditor.utils import vector2f
 
 if TYPE_CHECKING:
     from PySide6.QtWidgets import QStyleOptionGraphicsItem, QWidget
@@ -25,7 +26,7 @@ class WorldGraphWidget(BasePainterWidget):
         bottomRight = QPointF(-math.inf, -math.inf)
 
         for node in worldgraph.tNodes:
-            point = QPointF(node.vPos[0], -node.vPos[1])
+            point = vector2f(node.vPos)
             nodes[node.sID] = point
 
             if point.x() < topLeft.x():

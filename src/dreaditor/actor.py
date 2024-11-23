@@ -8,6 +8,8 @@ from mercury_engine_data_structures.formats.bmsad import Bmsad
 from mercury_engine_data_structures.formats.bmscc import Bmscc
 from PySide6.QtCore import QRectF, Qt
 
+from dreaditor.utils import vector2f
+
 if TYPE_CHECKING:
     from mercury_engine_data_structures.file_tree_editor import FileTreeEditor
 
@@ -65,9 +67,8 @@ class Actor:
         self.entity_list_items = []
         self.actor_dot = None
         # Qt's y axis points down, so invert it
-        self.actor_rect = QRectF(
-            level_data.vPos[0] - DOT_SIZE, -level_data.vPos[1] - DOT_SIZE, 2 * DOT_SIZE, 2 * DOT_SIZE
-        )
+        vpos = vector2f(level_data.vPos)
+        self.actor_rect = QRectF(vpos.x() - DOT_SIZE, vpos.y() - DOT_SIZE, 2 * DOT_SIZE, 2 * DOT_SIZE)
 
         self.bmsad = editor.get_parsed_asset(bmsadLink, type_hint=Bmsad)
         if "COLLISION" in self.bmsad.components:

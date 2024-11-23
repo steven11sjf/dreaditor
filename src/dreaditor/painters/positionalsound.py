@@ -6,6 +6,7 @@ from PySide6.QtCore import QPointF, QRectF
 from PySide6.QtGui import QColor, QPainter, QPainterPath, QRadialGradient
 
 from dreaditor.painters.base_painter import BasePainterWidget
+from dreaditor.utils import vector2f
 
 if TYPE_CHECKING:
     from PySide6.QtWidgets import QStyleOptionGraphicsItem, QWidget
@@ -19,7 +20,7 @@ class PositionalSoundWidget(BasePainterWidget):
 
     def _paint(self, painter: QPainter, option: QStyleOptionGraphicsItem, widget: QWidget | None = ...) -> None:
         ps_comp = self.actor.getComponent("CPositionalSoundComponent")
-        vPos = QPointF(self.actor.level_data.vPos[0], -self.actor.level_data.vPos[1])
+        vPos = vector2f(self.actor.level_data.vPos)
         minAtt = ps_comp.fMinAtt
         maxAtt = ps_comp.fMaxAtt
 

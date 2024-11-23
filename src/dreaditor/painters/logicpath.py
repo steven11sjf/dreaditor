@@ -7,6 +7,7 @@ from PySide6.QtCore import QLineF, QPointF, QRectF
 from PySide6.QtGui import QBrush, QColor, QPainter, QPen
 
 from dreaditor.painters.base_painter import BasePainterWidget
+from dreaditor.utils import vector2f
 
 if TYPE_CHECKING:
     from PySide6.QtWidgets import QGraphicsItem, QStyleOptionGraphicsItem, QWidget
@@ -28,14 +29,14 @@ class LogicPathWidget(BasePainterWidget):
         bottomRight = QPointF(-math.inf, -math.inf)
 
         painter.setBrush(self.brush)
-        vPos = QPointF(self.actor.level_data.vPos[0], -self.actor.level_data.vPos[1])
+        vPos = vector2f(self.actor.level_data.vPos)
         lp_comp = self.actor.getComponent("CLogicPathComponent")
         for subpath in lp_comp.logicPath.tSubPaths:
             path: list[QLineF] = []
             prev = None
             painter.setPen(self.swarm_pen)
             for node in subpath.tNodes:
-                curr = vPos + QPointF(node.vPos[0], -node.vPos[1])
+                curr = vPos + vector2f(node.vPos)
 
                 if curr.x() < topLeft.x():
                     topLeft.setX(curr.x())

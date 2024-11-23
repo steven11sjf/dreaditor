@@ -7,6 +7,7 @@ from PySide6.QtCore import QPointF, QRectF
 from PySide6.QtGui import QPainter, QPolygonF
 
 from dreaditor.painters.base_painter import BasePainterWidget
+from dreaditor.utils import vector2f
 
 if TYPE_CHECKING:
     from PySide6.QtWidgets import QStyleOptionGraphicsItem, QWidget
@@ -26,10 +27,7 @@ class LogicShapeWidget(BasePainterWidget):
 
             return
 
-        vPos = QPointF(
-            self.actor.level_data.vPos[0] + logicshape_comp.pLogicShape.vPos[0],
-            -self.actor.level_data.vPos[1] - logicshape_comp.pLogicShape.vPos[1],
-        )
+        vPos = vector2f(self.actor.level_data.vPos) + vector2f(logicshape_comp.pLogicShape.vPos)
         ls_type = logicshape_comp.pLogicShape["@type"]
 
         if ls_type == "game::logic::collision::CPolygonCollectionShape":
@@ -37,7 +35,7 @@ class LogicShapeWidget(BasePainterWidget):
             for poly in logicshape_comp.pLogicShape.oPolyCollection.vPolys:
                 qpoly = QPolygonF()
                 for segment in poly.oSegmentData:
-                    qpoly.append(vPos + QPointF(segment.vPos[0], -segment.vPos[1]))
+                    qpoly.append(vPos + vector2f(segment.vPos))
 
                 if poly.bClosed:
                     qpoly.append(qpoly.first())
@@ -48,14 +46,12 @@ class LogicShapeWidget(BasePainterWidget):
                 rect = rect.united(qpoly.boundingRect())
 
         elif ls_type == "game::logic::collision::CAABoxShape2D":
-            p1 = vPos + QPointF(logicshape_comp.pLogicShape.v2Min[0], -logicshape_comp.pLogicShape.v2Min[1])
-            p2 = vPos + QPointF(logicshape_comp.pLogicShape.v2Max[0], -logicshape_comp.pLogicShape.v2Max[1])
+            p1 = vPos + vector2f(logicshape_comp.pLogicShape.v2Min)
+            p2 = vPos + vector2f(logicshape_comp.pLogicShape.v2Max)
             rect = QRectF(p1, p2)
             painter.drawRect(rect)
         elif ls_type == "game::logic::collision::COBoxShape2D":
-            halfExtent = QPointF(
-                logicshape_comp.pLogicShape.v2Extent[0] / 2, -logicshape_comp.pLogicShape.v2Extent[1] / 2
-            )
+            halfExtent = vector2f(logicshape_comp.pLogicShape.v2Extent) / 2
             rads = radians(logicshape_comp.pLogicShape.fDegrees)
 
             # do a simple rect draw if aligned
