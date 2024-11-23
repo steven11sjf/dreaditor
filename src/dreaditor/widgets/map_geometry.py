@@ -7,6 +7,7 @@ from PySide6.QtGui import QBrush, QColor, QPainter, QPen, QPolygonF
 from PySide6.QtWidgets import QGraphicsItem, QStyleOptionGraphicsItem, QWidget
 
 from dreaditor.config import CurrentConfiguration
+from dreaditor.utils import vector2f
 
 PEN = QPen(QColor(0, 0, 0, 255), 5.0)
 BRUSH = QBrush(QColor(64, 64, 64, 128))
@@ -41,7 +42,7 @@ class MapGeometry(QGraphicsItem):
 
         # convert all verts to QPointF, get the min/max for the bounding rect
         for v in verts:
-            vbuf.append(QPointF(v[0], -v[1]))
+            vbuf.append(vector2f(v))
 
             if v[0] < minimum.x():
                 minimum.setX(v[0])

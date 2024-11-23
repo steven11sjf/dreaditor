@@ -8,6 +8,7 @@ from PySide6.QtGui import QBrush, QColor, QPainter, QPainterPath, QPen, QPolygon
 from PySide6.QtWidgets import QStyleOptionGraphicsItem, QWidget
 
 from dreaditor.painters.base_painter import BasePainterWidget
+from dreaditor.utils import vector2f
 
 if TYPE_CHECKING:
     from PySide6.QtWidgets import QStyleOptionGraphicsItem, QWidget
@@ -16,10 +17,10 @@ LOGGER = logging.getLogger(__name__)
 
 
 def aabox2d_to_rect(aabox2d: dict, vPos: QPointF) -> QRectF:
-    halfw = aabox2d["data"]["size"][0] / 2
-    halfh = aabox2d["data"]["size"][1] / 2
-    p1 = vPos + QPointF(aabox2d["data"]["position"][0] - halfw, halfh - aabox2d["data"]["position"][1])
-    p2 = vPos + QPointF(aabox2d["data"]["position"][0] + halfw, -halfh - aabox2d["data"]["position"][1])
+    halfsize = vector2f(aabox2d["data"]["size"]) / 2
+    position = vector2f(aabox2d["data"]["position"])
+    p1 = vPos + position - halfsize
+    p2 = vPos + position + halfsize
     return QRectF(p1, p2)
 
 
@@ -32,7 +33,7 @@ def polycollection_to_polys(polycollection: dict, vPos: QPointF) -> list[QPolygo
 
         poly = QPolygonF()
         for p in polygon.points:
-            poly.append(poly_pos + QPointF(p.x, -p.y))
+            poly.append(poly_pos + vector2f([p.x, p.y]))
         if polygon.loop:
             poly.append(poly.first())
 
@@ -46,7 +47,7 @@ class CollisionDataFileWidget(BasePainterWidget):
 
     def _paint(self, painter: QPainter, option: QStyleOptionGraphicsItem, widget: QWidget | None = ...) -> None:
         rect = QRectF()
-        vPos = QPointF(self.actor.level_data.vPos[0], -self.actor.level_data.vPos[1])
+        vPos = vector2f(self.actor.level_data.vPos)
 
         for layer in self.actor.bmscc.raw.layers:
             for entry in layer.entries:
@@ -62,10 +63,10 @@ class CollisionDataFileWidget(BasePainterWidget):
                         rect = rect.united(p.boundingRect())
 
                 elif entry.type == "CIRCLE":
-                    center = vPos + QPointF(entry.data.position[0], -entry.data.position[1])
+                    center = vPos + vector2f(entry.data.position)
                     size = entry.data.size
-                    topLeft = center - QPointF(size, -size)
-                    bottomRight = center + QPointF(size, -size)
+                    topLeft = center - QPointF(size, size)
+                    bottomRight = center + QPointF(size, size)
                     circle_rect = QRectF(topLeft, bottomRight)
 
                     painter.drawEllipse(circle_rect)
@@ -81,7 +82,7 @@ class BmsadCollisionWidget(BasePainterWidget):
 
     def _paint(self, painter: QPainter, option: QStyleOptionGraphicsItem, widget: QWidget | None = ...) -> None:
         rect = QRectF()
-        vPos = QPointF(self.actor.level_data.vPos[0], -self.actor.level_data.vPos[1])
+        vPos = vector2f(self.actor.level_data.vPos)
 
         for func in self.actor.bmsad.components["COLLISION"].functions:
             if func.name == "CreateCollider":
@@ -119,7 +120,7 @@ class DoorPainterWidget(BasePainterWidget):
     config_val = "paintDoors"
 
     def _paint(self, painter: QPainter, option: QStyleOptionGraphicsItem, widget: QWidget | None = ...) -> None:
-        vPos = QPointF(self.actor.level_data.vPos[0], -self.actor.level_data.vPos[1])
+        vPos = vector2f(self.actor.level_data.vPos)
         door_type: str = self.actor.level_data.oActorDefLink.split("/")[2]
         entry_name = door_type if door_type in ["doorframe", "tunnelframe"] else "door"
 
@@ -162,7 +163,7 @@ class ShieldPainterWidget(BasePainterWidget):
     config_val = "paintDoors"
 
     def _paint(self, painter: QPainter, option: QStyleOptionGraphicsItem, widget: QWidget | None = ...) -> None:
-        vPos = QPointF(self.actor.level_data.vPos[0], -self.actor.level_data.vPos[1])
+        vPos = vector2f(self.actor.level_data.vPos)
         side = "collision_L" if self.actor.level_data.vAng[1] < 0 else "collision_R"
         shield_type: str = self.actor.level_data.oActorDefLink.split("/")[2]
 
@@ -199,16 +200,14 @@ class TilegroupPainterWidget(BasePainterWidget):
     }
 
     def _paint(self, painter: QPainter, option: QStyleOptionGraphicsItem, widget: QWidget | None = ...) -> None:
-        vPos = QPointF(self.actor.level_data.vPos[0], -self.actor.level_data.vPos[1])
+        vPos = vector2f(self.actor.level_data.vPos)
         tile_comp = self.actor.getComponent("CBreakableTileGroupComponent")
         rect = QRectF()
         painter.setPen(QPen(QColor(0, 0, 0), 1))
 
         for tile in tile_comp.aGridTiles:
-            tile_rect = QRectF(
-                vPos + QPointF(100.0 * tile.vGridCoords[0], -100.0 * (tile.vGridCoords[1] + 1)),
-                vPos + QPointF(100.0 * (tile.vGridCoords[0] + 1), -100.0 * tile.vGridCoords[1]),
-            )
+            bottomleft = vector2f(tile.vGridCoords) * 100.0 + vPos
+            tile_rect = QRectF(bottomleft + QPointF(0, -100), bottomleft + QPointF(100, 0))
             painter.setBrush(self.TILE_BRUSHES[tile.eTileType])
             painter.drawRect(tile_rect)
             rect = rect.united(tile_rect)
@@ -219,14 +218,15 @@ class TilegroupPainterWidget(BasePainterWidget):
 
     def shape(self) -> QPainterPath:
         res = QPainterPath()
-        vPos = QPointF(self.actor.level_data.vPos[0], -self.actor.level_data.vPos[1])
+        vPos = vector2f(self.actor.level_data.vPos)
         tile_comp = self.actor.getComponent("CBreakableTileGroupComponent")
 
         for tile in tile_comp.aGridTiles:
+            bottomleft = vector2f(tile.vGridCoords) * 100.0 + vPos
             res.addRect(
                 QRectF(
-                    vPos + QPointF(100.0 * tile.vGridCoords[0], -100.0 * (tile.vGridCoords[1] + 1)),
-                    vPos + QPointF(100.0 * (tile.vGridCoords[0] + 1), -100.0 * tile.vGridCoords[1]),
+                    bottomleft + QPointF(0, -100),
+                    bottomleft + QPointF(100, 0),
                 )
             )
 
