@@ -8,6 +8,7 @@ from mercury_engine_data_structures.file_tree_editor import FileTreeEditor
 from mercury_engine_data_structures.formats.bmmap import Bmmap
 from mercury_engine_data_structures.formats.bmsad import Bmsad
 from mercury_engine_data_structures.formats.bmscc import Bmscc
+from mercury_engine_data_structures.formats.bmsnav import Bmsnav
 from mercury_engine_data_structures.formats.brfld import ActorLayer, Brfld
 from mercury_engine_data_structures.formats.brsa import Brsa
 from mercury_engine_data_structures.game_check import Game
@@ -79,12 +80,12 @@ class RomManager:
         self.actors.clear()
 
         self.bmmap = self.editor.get_parsed_asset(scenario.scenario_file("bmmap"), type_hint=Bmmap)
+        self.bmsnav = self.editor.get_parsed_asset(scenario.scenario_file("bmsnav"), type_hint=Bmsnav)
+        self.main_window.scenario_viewer.set_map_geo(self.bmsnav.raw.aNavmeshGeos, self.bmsnav.raw.areas, None, -1000)
 
         # draw map
         gridDef = self.bmmap.raw.Root.gridDef
         self.main_window.scenario_viewer.set_bounds(gridDef.vGridMin, gridDef.vGridMax)
-        for geo in self.bmmap.raw.Root.aNavmeshGeos:
-            self.main_window.scenario_viewer.add_map_geo(geo.aVertex, geo.aIndex, None, -1000)
 
         # TODO fix the bug where these disappear
         # might be fixed when i make it only use the outline and draw borders correctly?
