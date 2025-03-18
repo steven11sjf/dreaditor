@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 import os
+import sys
 from pathlib import Path
 
 import importlib_metadata
@@ -28,8 +29,19 @@ def get_log_folder() -> Path:
     return logFolder
 
 
+def is_frozen() -> bool:
+    return getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS")
+
+
+def get_file_path() -> Path:
+    if is_frozen():
+        return Path(sys._MEIPASS)
+    else:
+        return Path(__file__).parent
+
+
 def get_data_path() -> Path:
-    return Path(__file__).parent.joinpath("data")
+    return get_file_path() / "data"
 
 
 def get_stylesheet(sheet_name: str) -> str:
