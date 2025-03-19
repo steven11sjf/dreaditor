@@ -1,0 +1,53 @@
+name: Create Release
+
+on:
+  push:
+    tags:
+      - v*.*.*
+
+jobs:
+  release:
+    runs-on: windows-latest
+    name: Build and Release
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install
+        run:
+          pip install -e .[dev]
+
+      - name: Build
+        run:
+          py tools\create_release.py
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: "release"
+          path: dist/
+          if-no-files-found: error
+
+      - name: Download Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: "release"
+          path: dist/
+
+      - name: Create Release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ github.ref }}
+          file: dist/*
+          file_glob: true
+          overwrite: true
