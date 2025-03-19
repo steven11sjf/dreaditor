@@ -1,5 +1,6 @@
 [build-system]
 requires = [
+  "importlib_metadata>=7.0",
   "setuptools>=61",
   "setuptools_scm>=8.1.0",
   "wheel>=0.42.0"
