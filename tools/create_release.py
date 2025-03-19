@@ -3,10 +3,10 @@ from __future__ import annotations
 from os import chdir
 from shutil import make_archive
 
-import importlib_metadata
+from importlib import metadata
 from PyInstaller.__main__ import run
 
-VERSION_STRING = importlib_metadata.version("dreaditor")
+VERSION_STRING = metadata.version("dreaditor")
 
 run(
     [
