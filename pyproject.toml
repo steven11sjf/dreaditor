@@ -15,7 +15,6 @@ authors = [
 dependencies = [
   "mercury-engine-data-structures>=0.33.0",
   "PySide6>=6.8.0.2",
-  "importlib_metadata>=7.0.2",
   "pre-commit>=4.0.1",
   "pyinstaller>=6.11.0",
 ]
